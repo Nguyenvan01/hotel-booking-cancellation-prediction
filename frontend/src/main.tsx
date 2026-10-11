@@ -1,12 +1,13 @@
-import { StrictMode, Suspense, lazy } from "react"
+import { Component, StrictMode, Suspense, lazy, type ReactNode } from "react"
 import { createRoot } from "react-dom/client"
-import { BrowserRouter, Link, Navigate, Route, Routes } from "react-router"
+import { BrowserRouter, Link, Navigate, Route, Routes, useLocation } from "react-router"
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { MotionConfig } from "motion/react"
 import { toast } from "sonner"
-import { SearchX } from "lucide-react"
+import { RefreshCw, SearchX, TriangleAlert } from "lucide-react"
 import { AppShell } from "@/components/layout"
 import { EmptyState, LoadingBlock } from "@/components/common"
+import { Button } from "@/components/ui/button"
 import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { ApiError } from "@/lib/api"
@@ -44,7 +45,45 @@ function NotFound() {
   )
 }
 
-const page = (el: React.ReactNode) => <Suspense fallback={<LoadingBlock rows={8} />}>{el}</Suspense>
+// Sau mỗi lần build, tên file JS đổi; tab mở từ trước sẽ không tải được màn hình mới -> tự tải lại trang một lần.
+window.addEventListener("vite:preloadError", (e) => {
+  try {
+    if (sessionStorage.getItem("reloaded-after-build")) return
+    sessionStorage.setItem("reloaded-after-build", "1")
+  } catch {
+    return
+  }
+  e.preventDefault()
+  window.location.reload()
+})
+
+/** Lỗi khi tải/hiển thị một màn hình: hiện thông báo thay vì trang trắng. */
+class RouteErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
+  state = { error: null as Error | null }
+  static getDerivedStateFromError(error: Error) {
+    return { error }
+  }
+  render() {
+    if (!this.state.error) return this.props.children
+    return (
+      <div className="flex h-full flex-col items-center gap-3">
+        <EmptyState icon={TriangleAlert} title="Không tải được màn hình này"
+          description="Giao diện vừa được cập nhật hoặc mất kết nối tới máy chủ. Tải lại trang để lấy phiên bản mới." />
+        <Button className="h-9 rounded-full px-4" onClick={() => window.location.reload()}><RefreshCw /> Tải lại trang</Button>
+      </div>
+    )
+  }
+}
+
+function Page({ children }: { children: ReactNode }) {
+  const { pathname } = useLocation()
+  return (
+    <RouteErrorBoundary key={pathname}>
+      <Suspense fallback={<LoadingBlock rows={8} />}>{children}</Suspense>
+    </RouteErrorBoundary>
+  )
+}
+const page = (el: ReactNode) => <Page>{el}</Page>
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -54,7 +93,7 @@ createRoot(document.getElementById("root")!).render(
           <BrowserRouter>
             <Routes>
               <Route element={<AppShell />}>
-                <Route index element={<IntroPage />} />
+                <Route index element={page(<IntroPage />)} />
                 <Route path="predict" element={page(<PredictPage />)} />
                 <Route path="evaluation" element={<Navigate to="/evaluation/overview" replace />} />
                 <Route path="evaluation/overview" element={page(<OverviewPage />)} />

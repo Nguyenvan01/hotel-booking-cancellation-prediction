@@ -116,7 +116,7 @@ export default function DataPage() {
   return (
     <div className="flex h-full flex-col gap-4">
       <PageHeader title="Dữ liệu" description="Data card: nguồn, giấy phép, chất lượng và từ điển dữ liệu (thời điểm mỗi biến có sẵn)."
-        actions={<a href="/api/files/data_dictionary.csv" download className={cn(buttonVariants({ variant: "outline" }), "h-9 rounded-full px-4")}><Download /> Tải data_dictionary.csv</a>} />
+        actions={<a href="/api/files/data_dictionary.csv" download className={cn(buttonVariants({ variant: "outline" }), "h-9 rounded-full border-[#d5dce6] bg-card px-4 text-foreground hover:border-[#b8c2d1] hover:bg-[#f1f4f8]")}><Download /> Tải data_dictionary.csv</a>} />
       {q.isLoading ? <LoadingBlock rows={10} /> : q.isError || !q.data ? (
         <EmptyState icon={Database} title="Không tải được data card" description="Kiểm tra máy chủ FastAPI đang chạy." />
       ) : (

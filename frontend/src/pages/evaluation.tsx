@@ -34,7 +34,7 @@ const AXIS = { fontSize: 12, stroke: "#94a3b8" }
 const pctTick = (v: number) => `${Math.round(v * 100)}%`
 const UNIT_TICKS = [0, 0.2, 0.4, 0.6, 0.8, 1]
 const downloadMetrics = (
-  <a href="/api/files/metrics.json" download className={cn(buttonVariants({ variant: "outline" }), "h-9 rounded-full px-4")}><Download /> Tải metrics.json</a>
+  <a href="/api/files/metrics.json" download className={cn(buttonVariants({ variant: "outline" }), "h-9 rounded-full border-[#d5dce6] bg-card px-4 text-foreground hover:border-[#b8c2d1] hover:bg-[#f1f4f8]")}><Download /> Tải metrics.json</a>
 )
 
 /** Khung chờ/lỗi chung cho các trang đánh giá: số liệu chỉ đến từ /api/metrics, thiếu thì hiện Empty. */

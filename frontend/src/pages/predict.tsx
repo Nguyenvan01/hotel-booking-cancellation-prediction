@@ -336,14 +336,14 @@ function PredictForm({ info }: { info: ModelInfo }) {
       <PageHeader title="Dự đoán rủi ro" description="Nhập thông tin có ngay lúc tạo booking để ước lượng xác suất hủy và nhóm ưu tiên xác nhận."
         actions={<>
           <DropdownMenu>
-            <DropdownMenuTrigger render={<Button variant="outline" className="h-9 rounded-full px-4" />}>
-              <Sparkles /> Điền booking mẫu <ChevronDown className="text-label" />
+            <DropdownMenuTrigger render={<Button variant="outline" className="h-9 rounded-full border-[#c7dafc] bg-[#edf3ff] px-4 text-[#2563eb] hover:border-[#9bbcf9] hover:bg-[#dfeaff] hover:text-[#2563eb] aria-expanded:bg-[#dfeaff] aria-expanded:text-[#2563eb]" />}>
+              <Sparkles /> Điền booking mẫu <ChevronDown className="text-[#2563eb]/70" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="min-w-72">
               {info.demo_bookings.map((d) => <DropdownMenuItem key={d.id} onClick={() => fill(d.id)}>{d.label}</DropdownMenuItem>)}
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant="outline" className="h-9 rounded-full px-4" onClick={() => { form.reset(empty); setResult(null) }}><Eraser /> Xoá form</Button>
+          <Button variant="outline" className="h-9 rounded-full border-[#d5dce6] bg-card px-4 text-foreground hover:border-[#b8c2d1] hover:bg-[#f1f4f8]" onClick={() => { form.reset(empty); setResult(null) }}><Eraser /> Xoá form</Button>
         </>} />
       <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 nav:grid-cols-12">
         <Frame index={0} className="nav:col-span-7" bodyClassName="fit:overflow-y-auto fit:-mr-3 fit:pr-3">

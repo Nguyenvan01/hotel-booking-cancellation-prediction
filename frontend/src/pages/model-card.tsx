@@ -56,7 +56,7 @@ export default function ModelCardPage() {
   return (
     <div className="flex h-full flex-col gap-4">
       <PageHeader title="Model card" description="Nội dung lấy nguyên văn từ reports/model_card.md."
-        actions={<a href="/api/files/model_card.md" download className={cn(buttonVariants({ variant: "outline" }), "h-9 rounded-full px-4")}><Download /> Tải model_card.md</a>} />
+        actions={<a href="/api/files/model_card.md" download className={cn(buttonVariants({ variant: "outline" }), "h-9 rounded-full border-[#d5dce6] bg-card px-4 text-foreground hover:border-[#b8c2d1] hover:bg-[#f1f4f8]")}><Download /> Tải model_card.md</a>} />
       {q.isLoading ? <LoadingBlock rows={10} /> : q.isError || !q.data ? (
         <EmptyState icon={FileText} title="Không tải được model card" description="Kiểm tra máy chủ và tệp reports/model_card.md." />
       ) : (

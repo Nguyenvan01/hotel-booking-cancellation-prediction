@@ -278,5 +278,6 @@ def spa(full_path: str):
     if full_path and target.is_file() and WEB.resolve() in target.parents:
         return FileResponse(target)
     if (WEB / "index.html").exists():
-        return FileResponse(WEB / "index.html")
+        # index.html không cache để trình duyệt luôn thấy tên file JS mới sau mỗi lần build (file JS có hash nên cache được)
+        return FileResponse(WEB / "index.html", headers={"Cache-Control": "no-cache"})
     return PlainTextResponse("Chưa build giao diện. Chạy: make ui (cần Node.js) rồi tải lại trang.", status_code=503)

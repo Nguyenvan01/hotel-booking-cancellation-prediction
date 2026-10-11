@@ -147,6 +147,7 @@ def test_downloads_are_whitelisted(client):
 def test_spa_routes_serve_index(client, path):
     r = client.get(path)
     assert r.status_code == 200 and '<div id="root">' in r.text
+    assert r.headers["cache-control"] == "no-cache"
 
 
 @pytest.mark.skipif(not (ROOT / "app" / "web" / "index.html").exists(), reason="chưa build giao diện (make ui)")
