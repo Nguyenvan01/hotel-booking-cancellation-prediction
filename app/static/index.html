@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rủi ro hủy đặt phòng · Giới thiệu</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header><nav>
+  <a class="brand" href="/">Rủi ro hủy đặt phòng</a>
+  <a href="/" aria-current="page">Giới thiệu</a>
+  <a href="/predict">Dự đoán</a>
+  <a href="/dashboard">Đánh giá &amp; model card</a>
+  <a href="/docs">API</a>
+</nav></header>
+<main>
+  <h1>Ước lượng rủi ro hủy ngay khi nhận booking</h1>
+  <p class="lead">Ứng dụng dùng <strong>hồi quy logistic</strong> để ước lượng xác suất một booking sẽ bị hủy,
+    chỉ từ thông tin có tại <strong>thời điểm booking được tạo</strong>, và xếp booking vào nhóm ưu tiên gọi
+    xác nhận. Project 13, học phần Học máy (Bài 5: Hồi quy logistic).</p>
+
+  <div class="notice danger" role="note">
+    <strong>Sử dụng có trách nhiệm.</strong> Kết quả chỉ dùng để <strong>ưu tiên gọi xác nhận</strong> với khách.
+    <strong>Không</strong> dùng để tự động hủy booking, tăng giá, yêu cầu điều kiện khắt khe hơn, hay đối xử
+    khác biệt với bất kỳ khách nào. Xác suất là ước lượng thống kê, có sai số; quyết định cuối cùng thuộc về
+    nhân viên.
+  </div>
+
+  <div class="grid-2">
+    <section class="card">
+      <h2>Phạm vi</h2>
+      <ul>
+        <li>Dữ liệu: <em>Hotel Booking Demand</em> (Antonio, Almeida &amp; Nunes, 2019, CC BY 4.0), 119.390 booking
+          của 2 khách sạn ở Bồ Đào Nha (City Hotel và Resort Hotel), ngày đến 07/2015–08/2017.</li>
+        <li>Đơn vị dự đoán: <strong>một booking</strong>, tại thời điểm được tạo.</li>
+        <li>Đầu ra: xác suất hủy (0–100%) và nhóm ưu tiên (Rất cao / Cao / Trung bình / Thấp) theo 3 ngưỡng
+          chọn trên tập validation.</li>
+        <li>Huấn luyện trên booking đến 07/2015–12/2016; đánh giá độc lập trên 05–08/2017.</li>
+      </ul>
+    </section>
+    <section class="card">
+      <h2>Mô hình không dùng những gì?</h2>
+      <ul>
+        <li>Biến chỉ biết <strong>sau</strong> lúc đặt: trạng thái đặt phòng, phòng được xếp thực tế, số lần sửa
+          booking, số ngày trong danh sách chờ.</li>
+        <li>Biến nghi được ghi/sửa sau lúc đặt: chỗ đậu xe, loại tiền cọc, giá/đêm (ADR), số yêu cầu đặc biệt.</li>
+        <li><strong>Quốc tịch</strong> (nghi rò rỉ và có rủi ro phân biệt đối xử), mã đại lý/công ty.</li>
+        <li>Không có tên, liên hệ hay thông tin định danh khách.</li>
+      </ul>
+    </section>
+  </div>
+
+  <section class="card">
+    <h2>Cách dùng</h2>
+    <ol>
+      <li>Mở trang <a href="/predict">Dự đoán</a>, nhập thông tin booking (hoặc bấm một booking mẫu).</li>
+      <li>Đọc xác suất, nhóm ưu tiên, hành động gợi ý và <strong>các cảnh báo</strong> (ví dụ đầu vào hiếm hoặc
+        nằm ngoài miền dữ liệu huấn luyện).</li>
+      <li>Xem <a href="/dashboard">Đánh giá &amp; model card</a> để biết độ chính xác, mức hiệu chỉnh và giới hạn
+        trước khi tin vào một con số.</li>
+    </ol>
+    <p><strong>Quyền riêng tư:</strong> dữ liệu nhập vào chỉ được dùng để tính kết quả rồi bỏ đi; ứng dụng không
+      lưu, không ghi log nội dung booking và không dùng cơ sở dữ liệu.</p>
+    <p><a class="btn" href="/predict">Bắt đầu dự đoán</a></p>
+  </section>
+</main>
+<footer>Dữ liệu: Antonio, de Almeida &amp; Nunes (2019), <em>Data in Brief</em> 22, 41–49,
+  doi:10.1016/j.dib.2018.11.126 (CC BY 4.0). Sản phẩm học tập, không dùng cho quyết định thật.</footer>
+</body>
+</html>

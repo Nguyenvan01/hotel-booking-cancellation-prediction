@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rủi ro hủy đặt phòng · Đánh giá &amp; model card</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header><nav>
+  <a class="brand" href="/">Rủi ro hủy đặt phòng</a>
+  <a href="/">Giới thiệu</a>
+  <a href="/predict">Dự đoán</a>
+  <a href="/dashboard" aria-current="page">Đánh giá &amp; model card</a>
+  <a href="/docs">API</a>
+</nav></header>
+<main>
+  <h1>Đánh giá mô hình &amp; model card</h1>
+  <p class="lead" id="meta">Đang tải…</p>
+
+  <h2>Kết quả trên tập test độc lập (05–08/2017)</h2>
+  <div class="kpis" id="kpis"></div>
+
+  <h2>Baseline và mô hình đầy đủ</h2>
+  <p>Validation dùng để <strong>chọn</strong> mô hình, tham số và ngưỡng; test chỉ dùng một lần để <strong>kết
+    luận</strong>. Khoảng 95%: bootstrap theo cụm ngày đến.</p>
+  <div class="card table-wrap"><table id="t-models"></table></div>
+  <figure class="card"><img src="/figures/fig_roc_pr.png" alt="Đường ROC và Precision-Recall trên test của mô hình chính và hai baseline">
+    <figcaption>ROC và Precision–Recall trên test. Nguồn: reports/figures/fig_roc_pr.png (src/evaluate.py).</figcaption></figure>
+
+  <h2>Calibration</h2>
+  <figure class="card"><img src="/figures/fig_calibration.png" alt="Reliability diagram và phân bố xác suất dự đoán">
+    <figcaption id="cap-calib">Reliability diagram: điểm càng gần đường chéo, xác suất càng đáng tin.</figcaption></figure>
+
+  <h2>Ba ngưỡng hành động</h2>
+  <p>Ngưỡng được chọn trên validation rồi áp dụng nguyên trạng cho test. Một booking được xếp vào nhóm cao nhất mà
+    xác suất của nó vượt qua.</p>
+  <div class="card table-wrap"><table id="t-thresholds"></table></div>
+  <figure class="card"><img src="/figures/fig_confusion_thresholds.png" alt="Ba ma trận nhầm lẫn trên test tại ba ngưỡng">
+    <figcaption>Ma trận nhầm lẫn trên test tại 3 ngưỡng.</figcaption></figure>
+
+  <h2>Hiệu năng theo nhóm và theo thời gian</h2>
+  <div class="grid-2">
+    <figure class="card"><img src="/figures/fig_error_groups.png" alt="Tỷ lệ hủy thực tế và dự đoán theo nhóm">
+      <figcaption>Tỷ lệ hủy thực tế và xác suất dự đoán trung bình theo nhóm (test).</figcaption></figure>
+    <figure class="card"><img src="/figures/fig_monthly.png" alt="Tỷ lệ hủy theo tháng đến trên validation và test">
+      <figcaption>Theo tháng đến: validation và test.</figcaption></figure>
+  </div>
+
+  <h2>Hệ số / odds ratio</h2>
+  <figure class="card"><img src="/figures/fig_odds_ratios.png" alt="Odds ratio của 20 số hạng có hệ số lớn nhất">
+    <figcaption>Odds ratio <strong>có điều kiện</strong> (giữ các biến khác không đổi). Đây là liên hệ thống kê
+      trong dữ liệu, <strong>không phải tác động nhân quả</strong>.</figcaption></figure>
+
+  <h2 id="model-card">Model card (tóm tắt)</h2>
+  <div class="grid-2">
+    <section class="card">
+      <h3>Mục đích sử dụng</h3>
+      <p>Ưu tiên gọi xác nhận các booking có xác suất hủy cao, ngay khi booking được tạo, để bộ phận lễ tân chủ
+        động lập kế hoạch.</p>
+      <h3>Sử dụng bị cấm</h3>
+      <ul>
+        <li>Tự động hủy booking hoặc từ chối khách.</li>
+        <li>Tăng giá, yêu cầu đặt cọc hay điều kiện khắt khe hơn dựa trên điểm rủi ro.</li>
+        <li>Phân biệt đối xử theo bất kỳ đặc điểm nào của khách.</li>
+      </ul>
+    </section>
+    <section class="card">
+      <h3>Giới hạn chính</h3>
+      <ul>
+        <li>Chỉ 2 khách sạn ở Bồ Đào Nha, booking 2015–2017; không đại diện cho khách sạn khác hay giai đoạn khác.</li>
+        <li>Hiệu năng giảm theo thời gian: ROC-AUC từ <span id="lim-val"></span> (validation) xuống
+          <span id="lim-test"></span> (test).</li>
+        <li>Xếp hạng kém hơn trong nhóm Online TA và lead time 8–90 ngày; dự đoán thấp tỷ lệ hủy của Resort Hotel.</li>
+        <li>Mô hình dựa nhiều vào <code>previous_cancellations</code>, biến có mẫu bất thường (booking đoàn).</li>
+        <li>Các biến nghi rò rỉ đã bị loại có chủ đích; nếu khách sạn xác nhận chúng có ngay lúc đặt, có thể huấn
+          luyện lại.</li>
+      </ul>
+      <p><a href="/model-card">Đọc model card đầy đủ</a></p>
+    </section>
+  </div>
+</main>
+<footer>Nguồn số liệu: models/metrics.json và reports/figures/ (sinh bởi src/evaluate.py). Dữ liệu: Antonio et al.
+  (2019), CC BY 4.0.</footer>
+<script src="/static/dashboard.js"></script>
+</body>
+</html>
