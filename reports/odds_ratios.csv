@@ -1,0 +1,47 @@
+Đặc trưng,Số hạng,So sánh,Hệ số (log-odds),Odds ratio
+previous_cancellations,previous_cancellations,"0 → 1 (log1p, chuẩn hóa)",1.4680,71.9434
+customer_type,customer_type = Transient,so với customer_type = Contract,1.3588,3.8915
+meal,meal = FB,so với meal = BB,0.9072,2.4773
+reserved_room_type,reserved_room_type = H,so với reserved_room_type = A,0.8485,2.3361
+market_segment,market_segment = Groups,so với market_segment = Aviation,0.8117,2.2518
+previous_bookings_not_canceled,previous_bookings_not_canceled,"0 → 1 (log1p, chuẩn hóa)",-0.7739,0.1133
+lead_time,lead_time,"16 → 158 (log1p, chuẩn hóa)",0.7533,2.8003
+market_segment,market_segment = Complementary,so với market_segment = Aviation,-0.6174,0.5394
+market_segment,market_segment = Direct,so với market_segment = Aviation,-0.5598,0.5713
+meal,meal = Undefined,so với meal = BB,-0.5542,0.5745
+hotel,hotel = Resort Hotel,so với hotel = City Hotel,-0.5031,0.6047
+market_segment,market_segment = Offline TA/TO,so với market_segment = Aviation,-0.4594,0.6317
+market_segment,market_segment = Online TA,so với market_segment = Aviation,-0.4411,0.6433
+reserved_room_type,reserved_room_type = G,so với reserved_room_type = A,0.3705,1.4485
+distribution_channel,distribution_channel = TA/TO,so với distribution_channel = Corporate,0.3565,1.4284
+arrival_date_month,arrival_date_month = July,so với arrival_date_month = April,-0.3103,0.7332
+customer_type,customer_type = Transient-Party,so với customer_type = Contract,-0.3001,0.7408
+is_repeated_guest,is_repeated_guest,1 so với 0 (khách lặp lại so với khách mới),-0.2802,0.7556
+arrival_date_month,arrival_date_month = November,so với arrival_date_month = April,-0.2663,0.7662
+arrival_date_month,arrival_date_month = September,so với arrival_date_month = April,-0.2162,0.8056
+arrival_date_month,arrival_date_month = January,so với arrival_date_month = April,-0.2072,0.8128
+arrival_date_month,arrival_date_month = May,so với arrival_date_month = April,-0.2024,0.8168
+distribution_channel,distribution_channel = Direct,so với distribution_channel = Corporate,-0.1763,0.8383
+distribution_channel,distribution_channel = GDS,so với distribution_channel = Corporate,-0.1426,0.8671
+reserved_room_type,reserved_room_type = C,so với reserved_room_type = A,0.1376,1.1475
+reserved_room_type,reserved_room_type = D,so với reserved_room_type = A,-0.1300,0.8781
+arrival_date_month,arrival_date_month = February,so với arrival_date_month = April,0.1138,1.1205
+reserved_room_type,reserved_room_type = B,so với reserved_room_type = A,-0.1122,0.8939
+arrival_date_month,arrival_date_month = March,so với arrival_date_month = April,-0.1002,0.9047
+customer_type,customer_type = Group,so với customer_type = Contract,0.0882,1.0922
+arrival_date_month,arrival_date_month = October,so với arrival_date_month = April,-0.0877,0.9161
+arrival_date_month,arrival_date_month = August,so với arrival_date_month = April,-0.0709,0.9316
+stays_in_weekend_nights,stays_in_weekend_nights,"0 → 2 (log1p, chuẩn hóa)",-0.0708,0.8559
+reserved_room_type,reserved_room_type = nhóm hiếm (<50 dòng train),so với reserved_room_type = A,0.0693,1.0718
+adults,adults,"2 → 3 (log1p, chuẩn hóa)",-0.0654,0.9045
+arrival_date_month,arrival_date_month = June,so với arrival_date_month = April,0.0532,1.0547
+market_segment,market_segment = Corporate,so với market_segment = Aviation,-0.0528,0.9486
+arrival_date_month,arrival_date_month = December,so với arrival_date_month = April,-0.0464,0.9547
+meal,meal = SC,so với meal = BB,0.0454,1.0465
+reserved_room_type,reserved_room_type = E,so với reserved_room_type = A,0.0395,1.0403
+babies,babies,"0 → 1 (log1p, chuẩn hóa)",-0.0330,0.7033
+stays_in_week_nights,stays_in_week_nights,"1 → 3 (log1p, chuẩn hóa)",-0.0223,0.9695
+reserved_room_type,reserved_room_type = F,so với reserved_room_type = A,0.0214,1.0216
+meal,meal = HB,so với meal = BB,0.0122,1.0122
+distribution_channel,distribution_channel = nhóm hiếm (<50 dòng train),so với distribution_channel = Corporate,-0.0110,0.9891
+children,children,"0 → 1 (log1p, chuẩn hóa)",0.0068,1.0218

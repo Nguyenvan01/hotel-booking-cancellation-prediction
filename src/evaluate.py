@@ -145,6 +145,9 @@ def main(split="test"):
     for name, color in curves:
         fpr, tpr, _ = roc_curve(y, probs[name])
         axes[0].plot(fpr, tpr, color=color, label=f"{name} (AUC {res[name]['roc_auc']:.3f})")
+        if "prior" in name:  # dự đoán hằng số: precision = tỷ lệ hủy ở mọi recall
+            axes[1].axhline(y.mean(), color=color, label=f"{name} (AP {res[name]['pr_auc']:.3f})")
+            continue
         prec, rec, _ = precision_recall_curve(y, probs[name])
         axes[1].plot(rec, prec, color=color, label=f"{name} (AP {res[name]['pr_auc']:.3f})")
     axes[0].set(xlabel="False positive rate", ylabel="True positive rate", title=f"ROC ({split})")
@@ -166,7 +169,7 @@ def main(split="test"):
         ax.plot(mean_pred, frac, color=color, linestyle=style, marker="o", markersize=4, label=label)
     ax.set(xlabel="Xác suất dự đoán trung bình (theo thập phân vị)", ylabel="Tỷ lệ hủy thực tế",
            xlim=(0, 1), ylim=(0, 1), title="Reliability diagram")
-    ax.legend(fontsize=8)
+    ax.legend(fontsize=8, loc="lower right")
     ax2.hist([p[y == 0], p[y == 1]], bins=np.linspace(0, 1, 26), stacked=True, color=[BLUE, ORANGE],
              label=["Không hủy", "Hủy"], edgecolor=SURFACE, linewidth=1)
     ax2.set(xlabel="Xác suất hủy dự đoán", ylabel="Số booking", title=f"Phân bố xác suất ({split})")
@@ -237,8 +240,7 @@ def main(split="test"):
     savefig(fig, out / "fig_error_groups.png")
 
     # Theo tháng đến: validation + tập đánh giá (độ trôi theo thời gian)
-    both = pd.concat([val.assign(_p=p_val, _set="validation"), ev.assign(_p=p, _set=split)]).drop_duplicates(
-        subset=None if split == "test" else ["arrival_date", "_p"])
+    both = val.assign(_p=p_val) if split == "val" else pd.concat([val.assign(_p=p_val), ev.assign(_p=p)])
     monthly = both.groupby(both["arrival_date"].dt.to_period("M")).agg(
         observed=(TARGET, "mean"), predicted=("_p", "mean"), n=(TARGET, "size"))
     fig, ax = plt.subplots(figsize=(9, 3.6))
@@ -261,7 +263,7 @@ def main(split="test"):
     ev = ev.assign(probability=p)
     fp = ev[(y == 0) & (p >= t_f1)].nlargest(5, "probability").assign(loai="FP (dự đoán hủy, thực tế không)")
     fn = ev[(y == 1) & (p < t_f1)].nsmallest(5, "probability").assign(loai="FN (dự đoán không, thực tế hủy)")
-    examples = pd.concat([fp, fn])[["loai", "probability", TARGET] + show_cols]
+    examples = pd.concat([fp, fn])[["loai", "probability", TARGET] + show_cols].reset_index(drop=True)
     examples.to_csv(tables / "fp_fn_examples.csv", index=False, float_format="%.3f")
     errors = ev.assign(err=np.select([(y == 0) & (p >= t_f1), (y == 1) & (p < t_f1)], ["FP", "FN"], "đúng"))
     err_mix = pd.crosstab(errors["market_segment"], errors["err"], normalize="columns").round(3)

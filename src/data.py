@@ -8,6 +8,7 @@ import urllib.request
 import zipfile
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import yaml
 
@@ -139,12 +140,16 @@ def load_splits(cfg=None):
 def md_table(df, floatfmt="{:,.3f}"):
     """DataFrame -> bảng Markdown (không cần thư viện tabulate)."""
     def fmt(v):
+        if isinstance(v, (bool, np.bool_)):
+            return "có" if v else "không"
+        if isinstance(v, pd.Timestamp):
+            return f"{v:%Y-%m-%d}"
         if isinstance(v, float):
             return floatfmt.format(v)
         return f"{v:,}" if isinstance(v, int) else str(v)
     df = df.reset_index() if df.index.name or not isinstance(df.index, pd.RangeIndex) else df
     rows = [" | ".join(map(str, df.columns)), " | ".join("---" for _ in df.columns)]
-    rows += [" | ".join(fmt(v.item() if hasattr(v, "item") else v) for v in r) for r in df.itertuples(index=False)]
+    rows += [" | ".join(fmt(v.item() if isinstance(v, np.generic) else v) for v in r) for r in df.itertuples(index=False)]
     return "\n".join(f"| {r} |" for r in rows)
 
 

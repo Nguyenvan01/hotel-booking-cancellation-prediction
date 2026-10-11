@@ -117,3 +117,7 @@ Mỗi quyết định ghi: bối cảnh → lựa chọn → lý do/bằng chứ
 - `src/train.py` không đọc test. `src/evaluate.py` có chế độ `val` để chạy thử code trên validation. Mỗi lần
   chạy trên test được ghi vào `reports/test_runs.log` (thời điểm UTC, SHA-256 mô hình, commit). Lần chạy test
   chính thức được thực hiện sau khi mô hình, đặc trưng và ngưỡng đã được commit.
+- **Nhật ký chạy test (2026-10-11):** lần 1 (14:34 UTC) là lần đánh giá chính thức. Lần 2 (14:36 UTC) cùng
+  mô hình, chỉ để sửa lỗi hiển thị trong `evaluate.py` (hình theo tháng lỡ bỏ các dòng trùng; đường PR của
+  baseline hằng số; định dạng bảng). Mọi metric của lần 2 giống hệt lần 1 (đã so sánh `metrics.json`); không có
+  tham số, đặc trưng hay ngưỡng nào thay đổi sau khi xem test.

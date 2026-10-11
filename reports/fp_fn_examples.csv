@@ -1,0 +1,11 @@
+loai,probability,is_canceled,hotel,lead_time,market_segment,distribution_channel,customer_type,deposit_type,previous_cancellations,is_repeated_guest,adults,stays_in_week_nights,arrival_date
+"FP (dự đoán hủy, thực tế không)",0.983,0,Resort Hotel,80,Direct,Direct,Transient,No Deposit,1,0,2,2,2017-06-09
+"FP (dự đoán hủy, thực tế không)",0.845,0,City Hotel,208,Groups,TA/TO,Transient,No Deposit,0,0,1,3,2017-05-24
+"FP (dự đoán hủy, thực tế không)",0.797,0,City Hotel,174,Groups,TA/TO,Transient,No Deposit,0,0,2,3,2017-07-19
+"FP (dự đoán hủy, thực tế không)",0.796,0,Resort Hotel,178,Online TA,TA/TO,Transient,No Deposit,0,0,3,5,2017-08-27
+"FP (dự đoán hủy, thực tế không)",0.773,0,City Hotel,12,Corporate,Corporate,Transient,No Deposit,1,1,1,2,2017-06-05
+"FN (dự đoán không, thực tế hủy)",0.000,1,City Hotel,1,Corporate,Corporate,Transient,No Deposit,0,1,1,2,2017-07-18
+"FN (dự đoán không, thực tế hủy)",0.001,1,Resort Hotel,1,Direct,Direct,Transient,No Deposit,0,1,1,1,2017-05-05
+"FN (dự đoán không, thực tế hủy)",0.002,1,Resort Hotel,0,Direct,Direct,Transient,No Deposit,0,1,1,1,2017-08-24
+"FN (dự đoán không, thực tế hủy)",0.002,1,City Hotel,4,Corporate,Corporate,Transient,No Deposit,0,1,1,0,2017-06-05
+"FN (dự đoán không, thực tế hủy)",0.002,1,City Hotel,4,Complementary,Corporate,Transient,No Deposit,0,1,1,0,2017-08-28
