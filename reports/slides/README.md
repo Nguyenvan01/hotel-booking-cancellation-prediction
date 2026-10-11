@@ -1,6 +1,6 @@
 # Slide trình bày (12 trang)
 
-Bộ slide được soạn trên claude.ai (Artifact "Slides"): https://claude.ai/artifact/Kknvpncxv5hUbVqv9EmjWq
+Bộ slide được soạn trên claude.ai (Artifact "Slides"): https://claude.ai/artifact/Kknvpncxv5hUbVqv9EmjWq (liên kết riêng tư, xem ghi chú bên dưới)
 
 - Liên kết đang ở chế độ riêng tư: chủ tài khoản cần chia sẻ (Share) thì thành viên còn lại mới mở được.
 - Tải về dạng PowerPoint hoặc PDF từ menu Share › Export, rồi lưu vào thư mục này để nộp kèm.
