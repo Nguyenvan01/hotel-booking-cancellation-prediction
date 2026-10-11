@@ -1,0 +1,30 @@
+exp_id,stage,description,n_features_in,val_roc_auc,val_pr_auc,val_log_loss,val_brier,C,l1_ratio,class_weight,selected
+B0,baseline,Dự đoán tỷ lệ hủy chung của train cho mọi booking,1,0.50000,0.36523,0.65639,0.23185,,,,False
+B1,baseline,LogisticRegression chỉ với lead_time (chuẩn hóa),1,0.69516,0.55026,0.61745,0.21508,,,,False
+G00,grid,"LR đầy đủ, L2, C=0.001, class_weight=None",16,0.78231,0.70452,0.53941,0.18191,0.00100,0.00000,None,False
+G01,grid,"LR đầy đủ, L2, C=0.01, class_weight=None",16,0.78327,0.71107,0.52808,0.17702,0.01000,0.00000,None,False
+G02,grid,"LR đầy đủ, L2, C=0.1, class_weight=None",16,0.78328,0.71123,0.52701,0.17651,0.10000,0.00000,None,False
+G03,grid,"LR đầy đủ, L2, C=1, class_weight=None",16,0.78336,0.71119,0.52693,0.17645,1.00000,0.00000,None,True
+G04,grid,"LR đầy đủ, L2, C=10, class_weight=None",16,0.78316,0.71100,0.52701,0.17650,10.00000,0.00000,None,False
+G05,grid,"LR đầy đủ, L2, C=100, class_weight=None",16,0.78318,0.71104,0.52700,0.17649,100.00000,0.00000,None,False
+G06,grid,"LR đầy đủ, L1, C=0.001, class_weight=None",16,0.76842,0.66462,0.55859,0.19035,0.00100,1.00000,None,False
+G07,grid,"LR đầy đủ, L1, C=0.01, class_weight=None",16,0.78404,0.71265,0.52907,0.17723,0.01000,1.00000,None,False
+G08,grid,"LR đầy đủ, L1, C=0.1, class_weight=None",16,0.78342,0.71125,0.52720,0.17654,0.10000,1.00000,None,False
+G09,grid,"LR đầy đủ, L1, C=1, class_weight=None",16,0.78332,0.71110,0.52693,0.17646,1.00000,1.00000,None,False
+G10,grid,"LR đầy đủ, L1, C=10, class_weight=None",16,0.78332,0.71108,0.52694,0.17646,10.00000,1.00000,None,False
+G11,grid,"LR đầy đủ, L1, C=100, class_weight=None",16,0.78332,0.71108,0.52694,0.17646,100.00000,1.00000,None,False
+G12,grid,"LR đầy đủ, L2, C=0.001, class_weight=balanced",16,0.78273,0.70292,0.55554,0.18878,0.00100,0.00000,balanced,False
+G13,grid,"LR đầy đủ, L2, C=0.01, class_weight=balanced",16,0.78361,0.70904,0.55146,0.18829,0.01000,0.00000,balanced,False
+G14,grid,"LR đầy đủ, L2, C=0.1, class_weight=balanced",16,0.78364,0.70873,0.55212,0.18879,0.10000,0.00000,balanced,False
+G15,grid,"LR đầy đủ, L2, C=1, class_weight=balanced",16,0.78353,0.70877,0.55199,0.18875,1.00000,0.00000,balanced,False
+G16,grid,"LR đầy đủ, L2, C=10, class_weight=balanced",16,0.78361,0.70888,0.55193,0.18873,10.00000,0.00000,balanced,False
+G17,grid,"LR đầy đủ, L2, C=100, class_weight=balanced",16,0.78361,0.70887,0.55191,0.18872,100.00000,0.00000,balanced,False
+G18,grid,"LR đầy đủ, L1, C=0.001, class_weight=balanced",16,0.76826,0.66660,0.57052,0.19444,0.00100,1.00000,balanced,False
+G19,grid,"LR đầy đủ, L1, C=0.01, class_weight=balanced",16,0.78438,0.71086,0.54962,0.18712,0.01000,1.00000,balanced,False
+G20,grid,"LR đầy đủ, L1, C=0.1, class_weight=balanced",16,0.78371,0.70883,0.55144,0.18840,0.10000,1.00000,balanced,False
+G21,grid,"LR đầy đủ, L1, C=1, class_weight=balanced",16,0.78380,0.70904,0.55182,0.18865,1.00000,1.00000,balanced,False
+G22,grid,"LR đầy đủ, L1, C=10, class_weight=balanced",16,0.78376,0.70892,0.55196,0.18873,10.00000,1.00000,balanced,False
+G23,grid,"LR đầy đủ, L1, C=100, class_weight=balanced",16,0.78376,0.70892,0.55197,0.18873,100.00000,1.00000,balanced,False
+A1,ablation,Bỏ log1p ở biến đếm (chỉ chuẩn hóa),16,0.76551,0.69378,0.54364,0.18233,1.00000,0.00000,None,False
+A2,ablation,"Thêm biến nghi vấn: deposit_type, adr, total_of_special_requests",19,0.84106,0.80441,0.44691,0.14634,1.00000,0.00000,None,False
+A3,ablation,"MINH HỌA RÒ RỈ: thêm biến sau-đặt (assigned_room_type, booking_changes, days_in_waiting_list, required_car_parking_spaces, country)",21,0.86583,0.79547,0.43673,0.14268,1.00000,0.00000,None,False
