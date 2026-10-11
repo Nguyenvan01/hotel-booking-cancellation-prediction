@@ -24,3 +24,4 @@ reports/dryrun_val/
 
 # Frontend (React/Vite): node_modules không commit; bản build app/web được commit để chạy không cần Node
 frontend/node_modules/
+frontend/e2e-shots/
