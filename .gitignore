@@ -21,3 +21,6 @@ Project_13_huy_dat_phong_khach_san.docx
 
 # Kết quả chạy thử evaluate trên validation (python -m src.evaluate val)
 reports/dryrun_val/
+
+# Frontend (React/Vite): node_modules không commit; bản build app/web được commit để chạy không cần Node
+frontend/node_modules/

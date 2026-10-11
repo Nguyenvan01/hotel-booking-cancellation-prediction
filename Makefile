@@ -2,7 +2,7 @@
 PYTHON ?= python
 PORT ?= 8000
 
-.PHONY: all setup data train evaluate eda test app
+.PHONY: all setup data train evaluate eda test ui app
 
 all: data train evaluate test app   ## tải dữ liệu → huấn luyện → đánh giá test → kiểm thử → chạy web
 
@@ -23,6 +23,9 @@ eda:        ## chạy lại notebook EDA (chỉ dùng train)
 
 test:       ## test leakage, tiền xử lý, API
 	$(PYTHON) -m pytest -q tests
+
+ui:         ## build lại giao diện React vào app/web (cần Node.js 20+; bản build đã có sẵn trong repo)
+	cd frontend && npm ci && npm run build
 
 app:        ## web + API tại http://localhost:$(PORT)
 	$(PYTHON) -m uvicorn app.main:app --port $(PORT)

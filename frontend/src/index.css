@@ -1,0 +1,152 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/inter";
+
+/* Vừa một màn hình: từ 900px rộng và 860px cao thì trang không cuộn, bảng/biểu đồ cuộn trong khung */
+@custom-variant fit {
+  @media (min-width: 900px) and (min-height: 860px) {
+    @slot;
+  }
+}
+
+@theme {
+  --breakpoint-nav: 56.25rem; /* 900px */
+  --breakpoint-wide: 80rem; /* 1280px */
+  --text-xs: 12px;
+  --text-xs--line-height: 16px;
+  --text-sm: 13px;
+  --text-sm--line-height: 20px;
+  --text-base: 15px;
+  --text-base--line-height: 22px;
+  --text-lg: 18px;
+  --text-lg--line-height: 26px;
+  --text-2xl: 24px;
+  --text-2xl--line-height: 32px;
+  --text-3xl: 30px;
+  --text-3xl--line-height: 36px;
+}
+
+@theme inline {
+  --font-sans: "Inter Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-heading: var(--font-sans);
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --color-label: var(--label);
+  --color-selected: var(--selected);
+  --color-better: var(--better);
+  --color-worse: var(--worse);
+  --color-nodata: var(--nodata);
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: var(--radius);
+  --radius-xl: 14px;
+  --radius-2xl: 16px;
+}
+
+:root {
+  --radius: 12px;
+  --background: #f5f7fa;
+  --foreground: #1f2937;
+  --card: #ffffff;
+  --card-foreground: #1f2937;
+  --popover: #ffffff;
+  --popover-foreground: #1f2937;
+  --primary: #3478f6;
+  --primary-foreground: #ffffff;
+  --secondary: #f1f4f8;
+  --secondary-foreground: #1f2937;
+  --muted: #f1f4f8;
+  --muted-foreground: #64748b;
+  --accent: #edf3ff;
+  --accent-foreground: #1f2937;
+  --destructive: #b91c1c;
+  --border: #e9edf3;
+  --input: #e2e7ef;
+  --ring: #3478f6;
+  --label: #94a3b8;
+  --selected: #edf3ff;
+  --better: #2e7d4f;
+  --worse: #b4412f;
+  --nodata: #d1d5db;
+  /* màu biểu đồ */
+  --chart-main: #3478f6;
+  --chart-base: #9bbcf9;
+  --chart-random: #94a3b8;
+  --chart-threshold: #fab219;
+  --chart-warn: #d03b3b;
+  --chart-neutral: #7b8fad;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans antialiased;
+  }
+  body {
+    @apply bg-background text-foreground text-sm;
+    font-feature-settings: "cv11", "ss01";
+  }
+  :focus-visible {
+    outline: none;
+  }
+}
+
+@layer utilities {
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+  /* viền focus rõ: ring primary 25% */
+  .focus-ring {
+    @apply focus-visible:ring-[3px] focus-visible:ring-primary/25 focus-visible:outline-none;
+  }
+  /* thẻ nhỏ: nâng 2px khi hover */
+  .lift {
+    transition: transform 200ms ease-out, box-shadow 200ms ease-out, border-color 200ms ease-out;
+  }
+  .lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px -12px rgb(15 23 42 / 0.18);
+    border-color: color-mix(in oklab, var(--primary) 35%, var(--border));
+  }
+  /* khung lớn: chỉ đổi viền khi hover */
+  .frame-hover {
+    transition: border-color 200ms ease-out;
+  }
+  .frame-hover:hover {
+    border-color: color-mix(in oklab, var(--primary) 28%, var(--border));
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .lift:hover {
+      transform: none;
+      box-shadow: none;
+    }
+  }
+  .flash-row {
+    animation: flash-row 1.4s ease-out;
+  }
+}
+
+@keyframes flash-row {
+  0%, 30% { background-color: color-mix(in oklab, var(--primary) 18%, transparent); }
+  100% { background-color: transparent; }
+}

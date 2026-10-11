@@ -36,7 +36,7 @@ Từng bước (cũng là các lệnh dùng khi không có `make`):
 | Tải + kiểm tra dữ liệu | `python -m src.data` | `data/raw/` (không commit), `reports/data_quality.md` |
 | Huấn luyện | `python -m src.train` | `models/model.joblib`, `models/config.json`, `models/metrics.json` (validation), `reports/experiments.csv` |
 | Đánh giá test | `python -m src.evaluate` | `models/metrics.json` (test), `reports/results.md`, `reports/*.csv`, `reports/figures/` |
-| Kiểm thử | `python -m pytest -q tests` | 40 test: leakage, tiền xử lý, API |
+| Kiểm thử | `python -m pytest -q tests` | 51 test: leakage, tiền xử lý, API |
 | Web + API | `python -m uvicorn app.main:app --port 8000` | http://localhost:8000 |
 | EDA (tùy chọn) | `make eda` | `notebooks/eda.ipynb`, `reports/figures/eda_*.png` |
 
@@ -44,15 +44,36 @@ Từng bước (cũng là các lệnh dùng khi không có `make`):
 
 ## Ứng dụng web
 
-- `/`: giới thiệu, phạm vi, cách dùng có trách nhiệm.
-- `/predict`: form booking (đơn vị, miền giá trị, thông báo lỗi từng trường) → xác suất, nhóm ưu tiên, cảnh báo,
-  kèm 2 biểu đồ trực quan: đóng góp của từng biến vào log-odds ("vì sao ra kết quả này") và đường xác suất khi chỉ
-  thay đổi lead time. Có 4 booking mẫu giả lập; `/predict?demo=2` tự điền mẫu và gửi (dùng khi demo).
-- `/dashboard`: metric test, calibration, ma trận nhầm lẫn theo 3 ngưỡng, hiệu năng theo nhóm/thời gian, odds ratio,
-  model card tóm tắt (`/model-card` cho bản đầy đủ).
-- `/docs`: tài liệu API tự sinh (OpenAPI) kèm ví dụ.
+Giao diện React + TypeScript (Vite, Tailwind CSS v4, shadcn/ui trên Base UI, TanStack Query/Table, React Hook Form
++ Zod, Recharts, motion). Bản build nằm sẵn trong `app/web/` và được FastAPI phục vụ cùng cổng, nên `make app` chạy
+được ngay mà **không cần Node.js**.
 
-App chỉ nạp pipeline đã lưu lúc khởi động, không huấn luyện lại, không lưu hay ghi log dữ liệu booking.
+| Màn hình | Đường dẫn | Nội dung |
+|---|---|---|
+| Giới thiệu & phạm vi | `/` | Câu hỏi, phạm vi dữ liệu, cách dùng có trách nhiệm, các biến đã loại (kèm lý do) |
+| Dự đoán rủi ro | `/predict` | Form sinh từ `/api/model-info` (đơn vị, miền train, nhãn "ngoài miền"), xác suất + nhóm ưu tiên, cảnh báo, JSON request/response, giải thích log-odds |
+| Đánh giá mô hình | `/evaluation/overview`, `/thresholds`, `/calibration`, `/odds`, `/errors` | Baseline, ba ngưỡng và ma trận nhầm lẫn, reliability diagram, odds ratio, sai số theo nhóm; mọi khung ghi rõ Validation hay Test |
+| Model card | `/model-card` | Render nguyên văn `reports/model_card.md` |
+| Dữ liệu | `/data` | Nguồn, giấy phép, checksum, chất lượng, data dictionary |
+
+- Tìm kiếm toàn cục `Ctrl/⌘ K`, không cần gõ dấu: màn hình, biến của mô hình (nhảy tới dòng odds ratio), biến
+  trong từ điển dữ liệu.
+- `/predict?demo=high` (hoặc `low`, `medium`, `ood`) tự điền booking mẫu và gửi, dùng khi demo.
+- Không lưu dữ liệu booking (không localStorage, không cơ sở dữ liệu); kết quả mất khi tải lại trang.
+- Mọi số liệu và biểu đồ đọc từ file đã sinh (`models/metrics.json`, `reports/curves.json`, `reports/*.csv`); UI không
+  chứa logic mô hình.
+
+Sửa giao diện (cần Node.js 20+):
+
+```bash
+cd frontend && npm ci
+npm run dev        # http://localhost:5173, tự proxy /api tới uvicorn ở cổng 8000 (chạy make app song song)
+make ui            # build lại vào app/web
+```
+
+Endpoint chỉ đọc (không tính lại, chỉ đọc file đã lưu): `GET /api/health`, `/api/model-info` (phiên bản, ngưỡng, trường
+đầu vào kèm miền giá trị, booking mẫu), `/api/metrics` (validation, test, đường ROC/PR/calibration, odds ratio, sai số
+theo nhóm), `/api/model-card`, `/api/data-card`, `/api/files/{metrics.json|data_dictionary.csv|model_card.md}`.
 
 ### API `POST /api/cancellation-risk`
 
@@ -107,7 +128,8 @@ src/data.py            tải, kiểm tra checksum/schema, làm sạch, chia theo
 src/features.py        danh sách đặc trưng hợp lệ / bị cấm, ColumnTransformer
 src/train.py           baseline, tuning trên validation, ablation, chọn 3 ngưỡng, lưu pipeline
 src/evaluate.py        đánh giá test (1 lần), calibration, ngưỡng, odds ratio, phân tích lỗi, hình
-app/                   FastAPI (main.py, schemas.py) + giao diện static (3 màn hình)
+app/                   FastAPI (main.py, schemas.py); app/web = bản build giao diện
+frontend/              mã nguồn giao diện React + TypeScript (Vite)
 tests/                 test leakage, tiền xử lý, API
 notebooks/eda.ipynb    EDA chỉ trên train
 data/                  README (nguồn, giấy phép, checksum), data_dictionary.csv; raw/ bị gitignore

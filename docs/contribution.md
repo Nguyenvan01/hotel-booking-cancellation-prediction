@@ -46,6 +46,6 @@ Thành viên: **A** = `<Họ tên, MSSV>` · **B** = `<Họ tên, MSSV>`
 
 | Công cụ | Phạm vi sử dụng | Cách nhóm kiểm chứng |
 |---|---|---|
-| Claude Code (Claude Opus 5.5, Anthropic) | Rà soát repo so với tài liệu giao nhiệm vụ; viết lại pipeline dữ liệu/mô hình/đánh giá, ứng dụng web, test tự động; soạn bản nháp tài liệu, báo cáo, slide | (1) Chạy lại `make all` trên môi trường sạch; (2) 40 test tự động pass; (3) đối chiếu mọi con số trong báo cáo với `models/metrics.json` và `reports/*.csv`; (4) đọc lại từng quyết định trong `docs/decisions.md` và kiểm tra lại bằng dữ liệu; (5) `<nhóm bổ sung phần tự kiểm chứng của mình>` |
+| Claude Code (Claude Opus 5.5, Anthropic) | Rà soát repo so với tài liệu giao nhiệm vụ; viết lại pipeline dữ liệu/mô hình/đánh giá, ứng dụng web, test tự động; soạn bản nháp tài liệu, báo cáo, slide | (1) Chạy lại `make all` trên môi trường sạch; (2) 51 test tự động pass; (3) đối chiếu mọi con số trong báo cáo với `models/metrics.json` và `reports/*.csv`; (4) đọc lại từng quyết định trong `docs/decisions.md` và kiểm tra lại bằng dữ liệu; (5) `<nhóm bổ sung phần tự kiểm chứng của mình>` |
 
 Nhóm chịu trách nhiệm toàn bộ nội dung nộp, kể cả phần do AI soạn nháp.
