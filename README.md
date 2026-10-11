@@ -36,7 +36,7 @@ Từng bước (cũng là các lệnh dùng khi không có `make`):
 | Tải + kiểm tra dữ liệu | `python -m src.data` | `data/raw/` (không commit), `reports/data_quality.md` |
 | Huấn luyện | `python -m src.train` | `models/model.joblib`, `models/config.json`, `models/metrics.json` (validation), `reports/experiments.csv` |
 | Đánh giá test | `python -m src.evaluate` | `models/metrics.json` (test), `reports/results.md`, `reports/*.csv`, `reports/figures/` |
-| Kiểm thử | `python -m pytest -q tests` | 39 test: leakage, tiền xử lý, API |
+| Kiểm thử | `python -m pytest -q tests` | 40 test: leakage, tiền xử lý, API |
 | Web + API | `python -m uvicorn app.main:app --port 8000` | http://localhost:8000 |
 | EDA (tùy chọn) | `make eda` | `notebooks/eda.ipynb`, `reports/figures/eda_*.png` |
 
@@ -45,8 +45,9 @@ Từng bước (cũng là các lệnh dùng khi không có `make`):
 ## Ứng dụng web
 
 - `/`: giới thiệu, phạm vi, cách dùng có trách nhiệm.
-- `/predict`: form booking (đơn vị, miền giá trị, thông báo lỗi từng trường) → xác suất, nhóm ưu tiên, cảnh báo.
-  Có 4 booking mẫu giả lập; `/predict?demo=2` tự điền mẫu và gửi (dùng khi demo).
+- `/predict`: form booking (đơn vị, miền giá trị, thông báo lỗi từng trường) → xác suất, nhóm ưu tiên, cảnh báo,
+  kèm 2 biểu đồ trực quan: đóng góp của từng biến vào log-odds ("vì sao ra kết quả này") và đường xác suất khi chỉ
+  thay đổi lead time. Có 4 booking mẫu giả lập; `/predict?demo=2` tự điền mẫu và gửi (dùng khi demo).
 - `/dashboard`: metric test, calibration, ma trận nhầm lẫn theo 3 ngưỡng, hiệu năng theo nhóm/thời gian, odds ratio,
   model card tóm tắt (`/model-card` cho bản đầy đủ).
 - `/docs`: tài liệu API tự sinh (OpenAPI) kèm ví dụ.
@@ -81,6 +82,9 @@ curl -X POST http://localhost:8000/api/cancellation-risk -H "Content-Type: appli
 | Thiếu trường / body không phải JSON | 400 | `{"detail": [{"field": "hotel", "message": "Thiếu trường bắt buộc", "type": "missing"}]}` |
 | Sai kiểu (ví dụ `"lead_time": "12"`), hạng mục không hợp lệ, ngoài miền, trường lạ, 0 khách | 422 | `{"detail": [{"field": "lead_time", "message": "Phải là số nguyên", "type": "int_type"}]}` |
 | Lỗi nội bộ | 500 | `{"detail": "Lỗi nội bộ; không có dữ liệu nào được lưu. Vui lòng thử lại."}` |
+
+`POST /api/explain` nhận cùng body và trả về hệ số chặn, đóng góp log-odds của từng biến (tổng của chúng qua hàm
+sigmoid cho đúng xác suất) và đường xác suất theo lead time; giao diện dùng endpoint này để vẽ biểu đồ.
 
 Không có giá trị nào bị tự điền hay tự ép kiểu. Đầu vào hợp lệ nhưng hiếm hoặc nằm ngoài miền train (ví dụ
 `lead_time` > 737) vẫn được dự đoán, kèm cảnh báo trong `warnings`.

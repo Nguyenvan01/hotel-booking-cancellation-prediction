@@ -27,6 +27,16 @@
     nhân viên.
   </div>
 
+  <h2>Hệ thống hoạt động thế nào?</h2>
+  <div class="flow" aria-label="Luồng xử lý">
+    <div class="step"><strong>Booking mới</strong><span>16 thông tin có ngay lúc đặt: lead time, kênh, loại phòng, số khách, lịch sử hủy…</span></div>
+    <div class="step"><strong>Kiểm tra đầu vào</strong><span>Sai kiểu, thiếu hoặc ngoài miền → báo lỗi; hiếm gặp → cảnh báo</span></div>
+    <div class="step"><strong>Pipeline đã huấn luyện</strong><span>One-hot, log1p + chuẩn hóa (học từ train 2015–2016)</span></div>
+    <div class="step"><strong>Hồi quy logistic</strong><span>p = 1 / (1 + e<sup>−z</sup>), z = chặn + Σ hệ số × đặc trưng</span></div>
+    <div class="step"><strong>Nhóm ưu tiên</strong><span>So p với 3 ngưỡng (chọn trên validation) → Rất cao / Cao / Trung bình / Thấp</span></div>
+    <div class="step"><strong>Nhân viên quyết định</strong><span>Gọi xác nhận theo thứ tự ưu tiên; không tự động hủy hay tăng giá</span></div>
+  </div>
+
   <div class="grid-2">
     <section class="card">
       <h2>Phạm vi</h2>

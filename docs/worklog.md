@@ -59,4 +59,4 @@ Minh chứng: release cuối, báo cáo PDF + DOCX, slide, biên bản phân cô
 
 | Ngày | Người | Công cụ | Dùng để làm gì | Cách kiểm chứng |
 |---|---|---|---|---|
-| 2026-10-11 | `<điền>` | Claude Code (Claude Opus 5.5) | Rà soát repo so với đề, chuyển sang đúng bộ dữ liệu, viết lại pipeline `src/`, app, test và bản nháp tài liệu | Chạy lại toàn bộ pipeline, 39 test tự động, đối chiếu số trong tài liệu với `models/metrics.json`; nhóm tự đọc lại và chịu trách nhiệm nội dung (xem `docs/contribution.md`) |
+| 2026-10-11 | `<điền>` | Claude Code (Claude Opus 5.5) | Rà soát repo so với đề, chuyển sang đúng bộ dữ liệu, viết lại pipeline `src/`, app, test và bản nháp tài liệu | Chạy lại toàn bộ pipeline, 40 test tự động, đối chiếu số trong tài liệu với `models/metrics.json`; nhóm tự đọc lại và chịu trách nhiệm nội dung (xem `docs/contribution.md`) |

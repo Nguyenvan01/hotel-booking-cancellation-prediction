@@ -102,3 +102,15 @@ def test_schema_categories_match_training_data():
 @pytest.mark.parametrize("path", ["/", "/predict", "/dashboard", "/api/model-info", "/docs", "/model-card"])
 def test_pages_load(client, path):
     assert client.get(path).status_code == 200
+
+
+def test_explain_decomposes_log_odds_exactly(client, booking):
+    import math
+    risk = client.post(URL, json=booking).json()
+    ex = client.post("/api/explain", json=booking).json()
+    logit = ex["intercept"] + sum(c["contribution"] for c in ex["contributions"])
+    assert abs(1 / (1 + math.exp(-logit)) - risk["probability"]) < 1e-3
+    assert {c["feature"] for c in ex["contributions"]} == set(booking)
+    lt = [p["probability"] for p in ex["lead_time_curve"]]
+    assert lt == sorted(lt)  # hệ số lead_time dương: xác suất tăng theo lead time
+    assert client.post("/api/explain", json=booking | {"lead_time": "x"}).status_code == 422

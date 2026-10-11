@@ -72,3 +72,26 @@ figure { margin: 0; }
 figure img { width: 100%; height: auto; border: 1px solid var(--line); border-radius: 8px; background: #fcfcfb; }
 figcaption { color: var(--ink-2); font-size: 0.85rem; margin-top: 6px; }
 footer { color: var(--muted); font-size: 0.82rem; text-align: center; padding: 20px 16px; border-top: 1px solid var(--line); }
+
+/* Biểu đồ giải thích (SVG) */
+h3 { font-size: 1rem; margin: 8px 0 4px; }
+.hint-text { color: var(--muted); font-size: 0.85rem; margin: 0 0 8px; }
+.chart svg { width: 100%; height: auto; display: block; overflow: visible; }
+.chart text { fill: var(--ink-2); font-size: 13px; font-family: inherit; }
+.chart .axis { stroke: var(--line); stroke-width: 1; }
+.chart .zero { stroke: var(--muted); stroke-width: 1; }
+.chart .up { fill: #e34948; }
+.chart .down { fill: #2a78d6; }
+.chart .line { fill: none; stroke: #2a78d6; stroke-width: 2.5; }
+.chart .th { stroke: var(--muted); stroke-dasharray: 4 3; stroke-width: 1; }
+.chart .dot { fill: #e34948; stroke: var(--surface); stroke-width: 2; }
+.chart .ood { fill: var(--line); opacity: 0.6; }
+
+/* Sơ đồ luồng trên trang giới thiệu */
+.flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; counter-reset: step; }
+.flow .step { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px; position: relative; }
+.flow .step::before { counter-increment: step; content: counter(step); display: inline-grid; place-items: center;
+  width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: #fff; font-weight: 700; font-size: .8rem; margin-bottom: 6px; }
+.flow .step strong { display: block; }
+.flow .step span { color: var(--ink-2); font-size: 0.85rem; }
+.card > h2:first-child, .card > section > h2:first-child { margin-top: 0; }

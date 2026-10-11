@@ -118,17 +118,92 @@ function showResult(r) {
   res.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
+const SVGNS = "http://www.w3.org/2000/svg";
+function svg(tag, attrs = {}, text) {
+  const e = document.createElementNS(SVGNS, tag);
+  Object.entries(attrs).forEach(([k, v]) => e.setAttribute(k, v));
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+const fmtVal = v => (v === true ? "có" : v === false ? "không" : String(v));
+
+function renderContrib(ex) {
+  const top = ex.contributions.slice(0, 8);
+  const rest = ex.contributions.slice(8).reduce((s, c) => s + c.contribution, 0);
+  const rows = [...top.map(c => ({ label: `${c.label} = ${fmtVal(c.value)}`, v: c.contribution })),
+                { label: `Các biến còn lại (${ex.contributions.length - 8})`, v: rest }];
+  const W = 560, rowH = 26, left = 250, right = 60, H = rows.length * rowH + 10;
+  const max = Math.max(...rows.map(r => Math.abs(r.v)), 0.1);
+  const mid = left + (W - left - right) / 2, half = (W - left - right) / 2;
+  const root = svg("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Đóng góp của từng biến vào log-odds" });
+  root.append(svg("line", { class: "zero", x1: mid, x2: mid, y1: 0, y2: H }));
+  rows.forEach((r, i) => {
+    const y = i * rowH + 5, w = Math.abs(r.v) / max * half;
+    const bar = svg("rect", { class: r.v >= 0 ? "up" : "down", x: r.v >= 0 ? mid : mid - w, y: y + 4, width: Math.max(w, 1),
+                              height: rowH - 10, rx: 3 });
+    bar.append(svg("title", {}, `${r.label}: ${r.v >= 0 ? "+" : ""}${r.v.toFixed(3)} log-odds`));
+    root.append(svg("text", { x: left - 8, y: y + rowH / 2 + 3, "text-anchor": "end" }, r.label), bar,
+                svg("text", { x: r.v >= 0 ? mid + w + 4 : mid - w - 4, y: y + rowH / 2 + 3,
+                              "text-anchor": r.v >= 0 ? "start" : "end" }, `${r.v >= 0 ? "+" : ""}${r.v.toFixed(2)}`));
+  });
+  document.getElementById("r-contrib").replaceChildren(root);
+  const total = ex.contributions.reduce((s, c) => s + c.contribution, 0), z = ex.intercept + total;
+  document.getElementById("r-formula").textContent =
+    `log-odds = hệ số chặn (${ex.intercept.toFixed(2)}) + tổng đóng góp (${total >= 0 ? "+" : ""}${total.toFixed(2)}) = ` +
+    `${z.toFixed(2)} → p = 1 / (1 + e^(${(-z).toFixed(2)})) = ${(ex.probability * 100).toFixed(1)}%`;
+}
+
+function renderCurve(ex, booking, thresholds) {
+  const W = 560, H = 260, L = 44, R = 16, T = 12, B = 36;
+  const xmax = Math.max(ex.train_lead_time_max, booking.lead_time);
+  const x = v => L + v / xmax * (W - L - R), y = p => T + (1 - p) * (H - T - B);
+  const root = svg("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Xác suất hủy theo lead time" });
+  if (booking.lead_time > ex.train_lead_time_max) {
+    root.append(svg("rect", { class: "ood", x: x(ex.train_lead_time_max), y: T, width: x(xmax) - x(ex.train_lead_time_max), height: H - T - B }));
+    root.append(svg("text", { x: x(ex.train_lead_time_max) + 4, y: T + 14 }, "ngoài miền train"));
+  }
+  [0, 0.25, 0.5, 0.75, 1].forEach(p => {
+    root.append(svg("line", { class: "axis", x1: L, x2: W - R, y1: y(p), y2: y(p) }));
+    root.append(svg("text", { x: L - 6, y: y(p) + 4, "text-anchor": "end" }, `${p * 100}%`));
+  });
+  [0, 90, 180, 365, 540, ex.train_lead_time_max].forEach(v =>
+    root.append(svg("text", { x: x(v), y: H - B + 16, "text-anchor": "middle" }, String(v))));
+  root.append(svg("text", { x: (L + W - R) / 2, y: H - 4, "text-anchor": "middle" }, "lead time (ngày)"));
+  Object.entries(thresholds).forEach(([k, t]) => {
+    root.append(svg("line", { class: "th", x1: L, x2: W - R, y1: y(t), y2: y(t) }));
+    root.append(svg("text", { x: W - R, y: y(t) - 4, "text-anchor": "end" }, `${THRESHOLD_LABEL[k]} ${Math.round(t * 100)}%`));
+  });
+  root.append(svg("polyline", { class: "line", points: ex.lead_time_curve.map(d => `${x(d.lead_time)},${y(d.probability)}`).join(" ") }));
+  const dot = svg("circle", { class: "dot", cx: x(booking.lead_time), cy: y(ex.probability), r: 6 });
+  dot.append(svg("title", {}, `Booking này: lead time ${booking.lead_time} ngày, xác suất ${(ex.probability * 100).toFixed(1)}%`));
+  root.append(dot);
+  document.getElementById("r-curve").replaceChildren(root);
+}
+
+async function explain(booking, thresholds) {
+  try {
+    const resp = await fetch("/api/explain", { method: "POST", headers: { "Content-Type": "application/json" },
+                                               body: JSON.stringify(booking) });
+    if (!resp.ok) return;
+    const ex = await resp.json();
+    renderContrib(ex);
+    renderCurve(ex, booking, thresholds);
+  } catch (e) { /* phần giải thích là phụ; kết quả chính vẫn hiển thị */ }
+}
+
 form.addEventListener("submit", async ev => {
   ev.preventDefault();
   clearErrors();
   statusEl.textContent = "Đang tính…";
+  const body = readForm();
   try {
     const resp = await fetch("/api/cancellation-risk", {
-      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(readForm()) });
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     const data = await resp.json();
     if (!resp.ok) { document.getElementById("result").classList.remove("show"); showErrors(data.detail); return; }
     statusEl.textContent = "";
     showResult(data);
+    explain(body, data.thresholds);
   } catch (e) {
     statusEl.textContent = "Không kết nối được tới API. Kiểm tra server đang chạy.";
   }

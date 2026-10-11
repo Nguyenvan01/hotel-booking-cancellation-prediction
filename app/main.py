@@ -80,19 +80,49 @@ def input_warnings(booking: BookingRequest):
     return out
 
 
+def to_frame(booking: BookingRequest):
+    row = pd.DataFrame([booking.model_dump()])
+    row["is_repeated_guest"] = row["is_repeated_guest"].astype(int)
+    return row[list(MODEL.feature_names_in_)]
+
+
 @app.post("/api/cancellation-risk", response_model=RiskResponse,
           responses={400: {"description": "Thiếu trường hoặc body không phải JSON"},
                      422: {"description": "Sai kiểu, hạng mục không hợp lệ hoặc ngoài miền cho phép"}})
 def cancellation_risk(booking: BookingRequest):
-    row = pd.DataFrame([booking.model_dump()])
-    row["is_repeated_guest"] = row["is_repeated_guest"].astype(int)
-    p = float(MODEL.predict_proba(row[list(MODEL.feature_names_in_)])[0, 1])
+    p = float(MODEL.predict_proba(to_frame(booking))[0, 1])
     group = next(g for g in CONFIG["risk_groups"] if p >= g["min_probability"])
     used = group["min_probability"] if group["min_probability"] > 0 else CONFIG["thresholds"]["high_recall"]
     return RiskResponse(probability=round(p, 4), risk_group=group["name"], action=group["action"],
                         threshold_used=round(used, 4),
                         thresholds={k: round(v, 4) for k, v in CONFIG["thresholds"].items()},
                         model_version=CONFIG["model_version"], warnings=input_warnings(booking))
+
+
+@app.post("/api/explain", responses={400: {"description": "Như /api/cancellation-risk"}, 422: {"description": "Như trên"}})
+def explain(booking: BookingRequest):
+    """Giải thích cho giao diện: log-odds = intercept + tổng đóng góp từng biến (tách chính xác của hồi quy logistic),
+    và đường xác suất khi chỉ thay đổi lead_time. Đóng góp được đo so với booking tham chiếu: biến số ở mức trung
+    bình của train, biến phân loại ở hạng mục tham chiếu (hạng mục bị drop trong one-hot)."""
+    row = to_frame(booking)
+    pre, lr = MODEL.named_steps["pre"], MODEL.named_steps["model"]
+    contrib = {}
+    for name, x, b in zip(pre.get_feature_names_out(), pre.transform(row)[0], lr.coef_[0]):
+        col = name.split("__", 1)[1]
+        feat = next(f for f in MODEL.feature_names_in_ if col == f or col.startswith(f + "_"))
+        contrib[feat] = contrib.get(feat, 0.0) + float(b * x)
+    values = booking.model_dump()
+    grid = [0, 7, 14, 30, 60, 90, 120, 150, 180, 240, 300, 365, 450, 540, 630, 737]
+    curve = MODEL.predict_proba(pd.concat([row.assign(lead_time=v) for v in grid]))[:, 1]
+    return {
+        "intercept": float(lr.intercept_[0]),
+        "probability": float(MODEL.predict_proba(row)[0, 1]),
+        "contributions": sorted(({"feature": f, "label": BookingRequest.model_fields[f].title, "value": values[f],
+                                  "contribution": round(c, 4)} for f, c in contrib.items()),
+                                key=lambda d: -abs(d["contribution"])),
+        "lead_time_curve": [{"lead_time": v, "probability": round(float(q), 4)} for v, q in zip(grid, curve)],
+        "train_lead_time_max": CONFIG["train_domain"]["numeric"]["lead_time"]["max"],
+    }
 
 
 @app.get("/api/model-info")

@@ -51,6 +51,22 @@
       </div>
     </div>
     <div id="r-warnings"></div>
+    <div class="grid-2" style="margin-top:12px">
+      <section>
+        <h3>Vì sao mô hình cho kết quả này?</h3>
+        <p class="hint-text">Đóng góp của từng biến vào log-odds hủy, so với booking tham chiếu (biến số ở mức trung bình
+          của train, biến phân loại ở hạng mục tham chiếu). Đỏ: đẩy rủi ro lên; xanh: kéo rủi ro xuống. Đây là liên hệ
+          trong dữ liệu, không phải nguyên nhân.</p>
+        <div id="r-contrib" class="chart"></div>
+        <p class="hint-text" id="r-formula"></p>
+      </section>
+      <section>
+        <h3>Nếu lead time thay đổi?</h3>
+        <p class="hint-text">Xác suất hủy của <em>chính booking này</em> khi chỉ thay đổi lead time (các thông tin khác giữ
+          nguyên). Đường nét đứt: 3 ngưỡng hành động.</p>
+        <div id="r-curve" class="chart"></div>
+      </section>
+    </div>
     <p class="notice" style="margin-top:14px">Chỉ dùng để ưu tiên gọi xác nhận. Không tự động hủy, tăng giá hay đối
       xử khác biệt với khách. Mô hình có ROC-AUC <span id="test-auc">…</span> trên tập kiểm tra độc lập: nhiều booking sẽ bị
       xếp sai nhóm (xem <a href="/dashboard">trang đánh giá</a>).</p>
