@@ -1,6 +1,6 @@
 {
   "model_version": "logreg-1.0-5638e346",
-  "trained_at": "2026-10-11T14:30:04+00:00",
+  "trained_at": "2026-10-11T15:32:25+00:00",
   "seed": 42,
   "selected_experiment": "G03",
   "selection_metric": "val_log_loss",

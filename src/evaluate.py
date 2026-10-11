@@ -99,6 +99,26 @@ def odds_ratio_table(model, train):
     return out.reindex(out["Hệ số (log-odds)"].abs().sort_values(ascending=False).index).reset_index(drop=True)
 
 
+def thin(xs, ys, n=200):
+    """Rút gọn một đường cong còn tối đa n điểm (giữ hai đầu) để giao diện vẽ lại."""
+    idx = np.unique(np.linspace(0, len(xs) - 1, min(n, len(xs))).astype(int))
+    return [[round(float(xs[i]), 4), round(float(ys[i]), 4)] for i in idx]
+
+
+def uniform_bins(y, p, n=10):
+    """Reliability theo n bin đều trên [0, 1], kèm số booking từng lớp (cho histogram)."""
+    y, p = np.asarray(y), np.asarray(p)
+    b = np.minimum((p * n).astype(int), n - 1)
+    out = []
+    for i in range(n):
+        m = b == i
+        out.append({"bin_start": i / n, "bin_end": (i + 1) / n, "count": int(m.sum()),
+                    "n_canceled": int(y[m].sum()), "n_not_canceled": int(m.sum() - y[m].sum()),
+                    "mean_predicted": float(p[m].mean()) if m.any() else None,
+                    "observed_rate": float(y[m].mean()) if m.any() else None})
+    return out
+
+
 def savefig(fig, path):
     fig.tight_layout()
     fig.savefig(path, dpi=150)
@@ -141,8 +161,8 @@ def main(split="test"):
     comp.to_csv(tables / "results_comparison.csv", index=False, float_format="%.4f")
 
     fig, axes = plt.subplots(1, 2, figsize=(11, 4.2))
-    curves = [(MAIN, BLUE), ("Baseline: LR chỉ lead_time", ORANGE), ("Baseline: tỷ lệ hủy chung (prior)", AQUA)]
-    for name, color in curves:
+    curves_spec = [(MAIN, BLUE), ("Baseline: LR chỉ lead_time", ORANGE), ("Baseline: tỷ lệ hủy chung (prior)", AQUA)]
+    for name, color in curves_spec:
         fpr, tpr, _ = roc_curve(y, probs[name])
         axes[0].plot(fpr, tpr, color=color, label=f"{name} (AUC {res[name]['roc_auc']:.3f})")
         if "prior" in name:  # dự đoán hằng số: precision = tỷ lệ hủy ở mọi recall
@@ -285,6 +305,18 @@ def main(split="test"):
     probe["probability"] = model.predict_proba(probe[FEATURES])[:, 1]
     probe_view = probe[["lead_time", "probability"]].assign(
         trong_mien=probe["lead_time"].between(dom["numeric"]["lead_time"]["min"], dom["numeric"]["lead_time"]["max"]))
+
+    # Dữ liệu đường cong cho giao diện web (chỉ đọc, không tính lại ở API)
+    curves = {"split": split, "cancel_rate": float(y.mean()), "roc": {}, "pr": {},
+              "calibration": {"validation": {MAIN: uniform_bins(val[TARGET], p_val)},
+                              split: {MAIN: uniform_bins(y, p), cw_name: uniform_bins(y, probs[cw_name])}}}
+    for name, _ in curves_spec:
+        fpr, tpr, _ = roc_curve(y, probs[name])
+        curves["roc"][name] = thin(fpr, tpr)
+        prec, rec, _ = precision_recall_curve(y, probs[name])
+        curves["pr"][name] = ([[0.0, round(float(y.mean()), 4)], [1.0, round(float(y.mean()), 4)]] if "prior" in name
+                              else thin(rec[::-1], prec[::-1]))
+    (tables / "curves.json").write_text(json.dumps(curves, ensure_ascii=False), encoding="utf-8")
 
     # --- Ghi kết quả
     summary = {

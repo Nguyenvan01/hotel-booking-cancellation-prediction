@@ -1,0 +1,82 @@
+{
+ "n_raw": 119390,
+ "n_columns": 32,
+ "n_clean": 119206,
+ "missing": {
+  "children": 4,
+  "country": 488,
+  "agent": 16340,
+  "company": 112593
+ },
+ "duplicates_full": 31994,
+ "duplicates_feature_date_label": 39712,
+ "outliers": {
+  "adr < 0": 1,
+  "adr = 0": 1959,
+  "adr > 1000 (max = 5,400)": 1,
+  "Tổng số khách = 0": 180,
+  "adults > 4": 16,
+  "children >= 10 hoặc babies >= 9": 3,
+  "Tổng số đêm = 0": 715,
+  "lead_time > 365 (max = 737)": 3148,
+  "meal = 'Undefined' (theo bài báo tương đương 'SC')": 1169,
+  "market_segment = 'Undefined'": 2,
+  "distribution_channel = 'Undefined'": 5
+ },
+ "removed": [
+  {
+   "reason": "`children` bị thiếu (không tính được số khách; không tự điền giá trị)",
+   "rows": 4
+  },
+  {
+   "reason": "Tổng số khách = 0 (adults + children + babies = 0): booking không hợp lệ",
+   "rows": 180
+  }
+ ],
+ "target": [
+  {
+   "set": "all",
+   "n": 119206,
+   "n_canceled": 44195,
+   "cancel_rate": 0.37074476116973976,
+   "arrival_from": "2015-07-01",
+   "arrival_to": "2017-08-31"
+  },
+  {
+   "set": "train",
+   "n": 78586,
+   "n_canceled": 28461,
+   "cancel_rate": 0.3621637441783524,
+   "arrival_from": "2015-07-01",
+   "arrival_to": "2016-12-31"
+  },
+  {
+   "set": "val",
+   "n": 18443,
+   "n_canceled": 6736,
+   "cancel_rate": 0.3652334218944857,
+   "arrival_from": "2017-01-01",
+   "arrival_to": "2017-04-30"
+  },
+  {
+   "set": "test",
+   "n": 22177,
+   "n_canceled": 8998,
+   "cancel_rate": 0.40573567209270867,
+   "arrival_from": "2017-05-01",
+   "arrival_to": "2017-08-31"
+  }
+ ],
+ "by_hotel": [
+  {
+   "hotel": "City Hotel",
+   "n": 79159,
+   "cancel_rate": 0.4178299372149724
+  },
+  {
+   "hotel": "Resort Hotel",
+   "n": 40047,
+   "cancel_rate": 0.27767373336329815
+  }
+ ]
+}

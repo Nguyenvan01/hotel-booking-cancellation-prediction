@@ -3,6 +3,7 @@
 Chạy: python -m src.data   (tải dữ liệu nếu chưa có, kiểm tra checksum/schema, ghi reports/data_quality.md)
 """
 import hashlib
+import json
 import re
 import urllib.request
 import zipfile
@@ -238,6 +239,20 @@ precision/recall tại ngưỡng; `class_weight` được thử cả `None` và 
 """
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     Path(path).write_text(text, encoding="utf-8")
+    # Bản có cấu trúc cho giao diện web (trang Dữ liệu)
+    summary = {
+        "n_raw": len(raw), "n_columns": raw.shape[1], "n_clean": len(clean_df),
+        "missing": {c: int(n) for c, n in raw.isna().sum().items() if n > 0},
+        "duplicates_full": dup_full, "duplicates_feature_date_label": dup_feat,
+        "outliers": {k: int(v) for k, v in outliers["Số dòng"].items()},
+        "removed": [{"reason": r, "rows": n} for r, n in removed],
+        "target": [{"set": name, "n": len(s), "n_canceled": int(s["is_canceled"].sum()),
+                    "cancel_rate": float(s["is_canceled"].mean()),
+                    "arrival_from": f"{s['arrival_date'].min():%Y-%m-%d}", "arrival_to": f"{s['arrival_date'].max():%Y-%m-%d}"}
+                   for name, s in [("all", clean_df), *splits.items()]],
+        "by_hotel": [{"hotel": h, "n": int(r["n"]), "cancel_rate": float(r["cancel_rate"])} for h, r in by_hotel.iterrows()],
+    }
+    Path(path).with_suffix(".json").write_text(json.dumps(summary, ensure_ascii=False, indent=1), encoding="utf-8")
 
 
 def main():

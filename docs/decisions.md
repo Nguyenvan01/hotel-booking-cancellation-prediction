@@ -121,3 +121,6 @@ Mỗi quyết định ghi: bối cảnh → lựa chọn → lý do/bằng chứ
   mô hình, chỉ để sửa lỗi hiển thị trong `evaluate.py` (hình theo tháng lỡ bỏ các dòng trùng; đường PR của
   baseline hằng số; định dạng bảng). Mọi metric của lần 2 giống hệt lần 1 (đã so sánh `metrics.json`); không có
   tham số, đặc trưng hay ngưỡng nào thay đổi sau khi xem test.
+- **Lần 3 (2026-10-11 15:32 UTC):** cùng mô hình (SHA-256 không đổi sau khi chạy lại `src/train.py`), chỉ để lưu
+  thêm dữ liệu đường cong cho giao diện web (`reports/curves.json`: ROC/PR, reliability theo bin;
+  `threshold_curve` trên validation trong `models/metrics.json`). Mọi metric giống hệt các lần trước.

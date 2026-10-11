@@ -53,6 +53,18 @@ def threshold_summary(y, p, t):
             "flagged_share": (tp + fp) / len(y)}
 
 
+def threshold_curve(y, p, step=0.01):
+    """Precision/recall/tỷ lệ gắn cờ theo ngưỡng (để giao diện tra cứu, không tính lại). Precision = None khi
+    không booking nào bị gắn cờ."""
+    y, p, out = np.asarray(y), np.asarray(p), []
+    for t in np.round(np.arange(step, 1, step), 4):
+        flagged = p >= t
+        tp = int((flagged & (y == 1)).sum())
+        out.append({"threshold": float(t), "precision": tp / int(flagged.sum()) if flagged.any() else None,
+                    "recall": tp / int((y == 1).sum()), "flagged_share": float(flagged.mean())})
+    return out
+
+
 def choose_thresholds(y, p, recall_target, capacity_share):
     prec, rec, thr = precision_recall_curve(y, p)
     prec, rec = prec[:-1], rec[:-1]
@@ -198,7 +210,8 @@ def main():
                           (f"LR đầy đủ, class_weight={other_cw} (so sánh)", other_id)]
     }
     metrics = {"validation": {"models": val_metrics,
-                              "thresholds": {k: threshold_summary(y_va, p_val, t) for k, t in thresholds.items()}}}
+                              "thresholds": {k: threshold_summary(y_va, p_val, t) for k, t in thresholds.items()},
+                              "threshold_curve": threshold_curve(y_va, p_val)}}
     (models / "metrics.json").write_text(json.dumps(metrics, ensure_ascii=False, indent=2), encoding="utf-8")
 
     show = exp.set_index("exp_id")[["description", "val_roc_auc", "val_pr_auc", "val_log_loss"]]

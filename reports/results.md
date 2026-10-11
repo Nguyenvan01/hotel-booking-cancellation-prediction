@@ -1,6 +1,6 @@
 # Kết quả đánh giá (test)
 
-> Sinh tự động bởi `python -m src.evaluate` lúc 2026-10-11T14:36:27+00:00.
+> Sinh tự động bởi `python -m src.evaluate` lúc 2026-10-11T15:32:51+00:00.
 > Mô hình: `logreg-1.0-5638e346` (chọn trên validation: G03, {'C': 1, 'l1_ratio': 0.0, 'penalty': 'l2', 'class_weight': None, 'solver': 'lbfgs', 'max_iter': 5000}).
 > Tập test: 22,177 booking, tỷ lệ hủy 40.6%. Khoảng tin cậy 95%: bootstrap theo cụm ngày đến, 200 lần.
 
