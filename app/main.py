@@ -1,27 +1,40 @@
 """Ứng dụng web + API. Chỉ nạp pipeline đã huấn luyện (models/model.joblib), không huấn luyện lại, không lưu dữ liệu.
+Các endpoint GET chỉ đọc file đã sinh bởi src/ (metrics, đường cong, model card, data card), không tính lại.
 
-Chạy: uvicorn app.main:app --port 8000   (hoặc make app)
+Chạy: uvicorn app.main:app --port 8000   (hoặc make app). Giao diện React build sẵn ở app/web (make ui để build lại).
 """
 import json
 import logging
+import math
+import re
+from datetime import datetime, timezone
 from pathlib import Path
 
 import joblib
 import pandas as pd
-from fastapi import FastAPI, Request
+import yaml
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.schemas import EXAMPLE, BookingRequest, RiskResponse
+from app.schemas import DEMO_BOOKINGS, EXAMPLE, BookingRequest, RiskResponse
 
 ROOT = Path(__file__).resolve().parents[1]
-STATIC = Path(__file__).parent / "static"
+WEB = Path(__file__).parent / "web"
+MODELS, REPORTS = ROOT / "models", ROOT / "reports"
 log = logging.getLogger("app")
 
-MODEL = joblib.load(ROOT / "models" / "model.joblib")
-CONFIG = json.loads((ROOT / "models" / "config.json").read_text(encoding="utf-8"))
-METRICS = json.loads((ROOT / "models" / "metrics.json").read_text(encoding="utf-8"))
+MODEL = joblib.load(MODELS / "model.joblib")
+CONFIG = json.loads((MODELS / "config.json").read_text(encoding="utf-8"))
+MODEL_IDS = {"Baseline: tỷ lệ hủy chung (prior)": "prior", "Baseline: LR chỉ lead_time": "lead_time",
+             "LR đầy đủ (mô hình chính)": "main", "LR đầy đủ, class_weight=balanced (so sánh)": "balanced"}
+GROUP_LABELS = {"hotel": "Loại khách sạn", "distribution_channel": "Kênh phân phối",
+                "market_segment": "Phân khúc thị trường", "customer_type": "Loại khách",
+                "lead_time_bin": "Khoảng lead time (ngày)", "guest_type": "Khách mới / lặp lại",
+                "arrival_month": "Tháng đến"}
+DOWNLOADS = {"metrics.json": MODELS / "metrics.json", "data_dictionary.csv": ROOT / "data" / "data_dictionary.csv",
+             "model_card.md": REPORTS / "model_card.md"}
 
 app = FastAPI(
     title="Dự đoán rủi ro hủy đặt phòng",
@@ -29,8 +42,6 @@ app = FastAPI(
     description="Logistic regression ước lượng xác suất hủy ngay lúc tạo booking. Chỉ dùng để ưu tiên gọi xác "
                 "nhận; không dùng để tự động hủy, tăng giá hay phân biệt đối xử. Không lưu dữ liệu gửi lên.",
 )
-app.mount("/static", StaticFiles(directory=STATIC), name="static")
-app.mount("/figures", StaticFiles(directory=ROOT / "reports" / "figures"), name="figures")
 
 MESSAGES = {
     "missing": "Thiếu trường bắt buộc",
@@ -86,6 +97,59 @@ def to_frame(booking: BookingRequest):
     return row[list(MODEL.feature_names_in_)]
 
 
+def read_json(path):
+    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else None
+
+
+def read_csv(path):
+    if not path.exists():
+        return None
+    return [{k: (None if isinstance(v, float) and math.isnan(v) else v) for k, v in r.items()}
+            for r in pd.read_csv(path, keep_default_na=False, na_values=[""]).to_dict("records")]
+
+
+def by_model_id(d):
+    return {MODEL_IDS.get(k, k): v for k, v in d.items()} if d else d
+
+
+def field_specs():
+    """Danh sách trường đầu vào cho form: kiểu, nhãn, đơn vị, miền cứng (422), miền train (cảnh báo), hạng mục."""
+    schema, domain = BookingRequest.model_json_schema(), CONFIG["train_domain"]
+    out = []
+    for name, p in schema["properties"].items():
+        spec = {"name": name, "label": p.get("title", name), "description": p.get("description"),
+                "group": p.get("group"), "unit": p.get("unit"), "required": name in schema.get("required", [])}
+        if "enum" in p:
+            counts = domain["categories"].get(name, {})
+            spec |= {"type": "category", "options": [{"value": v, "train_count": counts.get(v, 0)} for v in p["enum"]]}
+        elif p.get("type") == "boolean":
+            spec |= {"type": "boolean"}
+        else:
+            spec |= {"type": "integer", "min": p.get("minimum"), "max": p.get("maximum"),
+                     "train": domain["numeric"].get(name)}
+        out.append(spec)
+    return out
+
+
+def section_bullets(markdown, heading):
+    """Các gạch đầu dòng của một mục trong model card (để giao diện trích dẫn, không viết lại)."""
+    m = re.search(rf"^## {re.escape(heading)}.*?$(.*?)(?=^## |\Z)", markdown, flags=re.M | re.S)
+    if not m:
+        return []
+    items = []
+    for line in m.group(1).splitlines():
+        if line.startswith("- "):
+            items.append(line[2:].strip())
+        elif line.startswith("  ") and items and line.strip():
+            items[-1] += " " + line.strip()
+    return items
+
+
+@app.get("/api/health")
+def health():
+    return {"status": "ok", "model_version": CONFIG["model_version"]}
+
+
 @app.post("/api/cancellation-risk", response_model=RiskResponse,
           responses={400: {"description": "Thiếu trường hoặc body không phải JSON"},
                      422: {"description": "Sai kiểu, hạng mục không hợp lệ hoặc ngoài miền cho phép"}})
@@ -127,28 +191,92 @@ def explain(booking: BookingRequest):
 
 @app.get("/api/model-info")
 def model_info():
-    """Thông tin cho giao diện: schema đầu vào, ngưỡng, metric validation/test, phiên bản."""
+    """Phiên bản, phạm vi, ngưỡng, trường đầu vào (lấy từ schema + miền train), booking mẫu, biến bị loại."""
+    dictionary = read_csv(ROOT / "data" / "data_dictionary.csv") or []
+    excluded = [{"variable": r["variable"], "role": r["role"], "available_at": r["available_at"], "reason": r["decision"]}
+                for r in dictionary if r["role"].startswith("excluded") or r["role"] == "sensitivity_only"]
     return {"model_version": CONFIG["model_version"], "trained_at": CONFIG["trained_at"], "params": CONFIG["params"],
-            "split": CONFIG["split"], "thresholds": CONFIG["thresholds"], "risk_groups": CONFIG["risk_groups"],
-            "features": CONFIG["features"], "forbidden_columns": CONFIG["forbidden_columns"],
-            "input_schema": BookingRequest.model_json_schema(), "example": EXAMPLE, "metrics": METRICS}
+            "split": CONFIG["split"], "hotels": list(CONFIG["train_domain"]["categories"]["hotel"]),
+            "thresholds": CONFIG["thresholds"], "risk_groups": CONFIG["risk_groups"], "fields": field_specs(),
+            "demo_bookings": DEMO_BOOKINGS, "excluded": excluded, "example": EXAMPLE,
+            "input_schema": BookingRequest.model_json_schema()}
 
 
-@app.get("/model-card", response_class=PlainTextResponse)
+@app.get("/api/metrics")
+def metrics():
+    """Số liệu đã lưu: models/metrics.json, reports/curves.json, odds ratio, sai số theo nhóm, thí nghiệm."""
+    m = read_json(MODELS / "metrics.json") or {}
+    for part in ("validation", "test"):
+        if part in m:
+            m[part]["models"] = by_model_id(m[part]["models"])
+    curves = read_json(REPORTS / "curves.json")
+    if curves:
+        curves["roc"], curves["pr"] = by_model_id(curves["roc"]), by_model_id(curves["pr"])
+        curves["calibration"] = {k: by_model_id(v) for k, v in curves["calibration"].items()}
+    fields = BookingRequest.model_fields
+    odds = [{"feature": r["Đặc trưng"], "label": fields[r["Đặc trưng"]].title if r["Đặc trưng"] in fields else r["Đặc trưng"],
+             "group": (fields[r["Đặc trưng"]].json_schema_extra or {}).get("group") if r["Đặc trưng"] in fields else None,
+             "term": r["Số hạng"], "level": r["Số hạng"].split(" = ", 1)[1] if " = " in r["Số hạng"] else None,
+             "comparison": r["So sánh"], "coef": r["Hệ số (log-odds)"], "odds_ratio": r["Odds ratio"]}
+            for r in read_csv(REPORTS / "odds_ratios.csv") or []]
+    error_groups = [{"variable": r["Biến"], "variable_label": GROUP_LABELS.get(r["Biến"], r["Biến"]),
+                     "group": str(r["Nhóm"]), "n": r["n"], "observed_rate": r["Tỷ lệ hủy thực tế"],
+                     "mean_predicted": r["Xác suất dự đoán TB"], "roc_auc": r["ROC-AUC"], "log_loss": r["Log loss"],
+                     "precision": r["Precision@F1"], "recall": r["Recall@F1"], "flagged_share": r["Tỷ lệ gắn cờ"]}
+                    for r in read_csv(REPORTS / "error_by_group.csv") or []]
+    card = (REPORTS / "model_card.md").read_text(encoding="utf-8") if (REPORTS / "model_card.md").exists() else ""
+    return {"model_version": CONFIG["model_version"], "validation": m.get("validation"), "test": m.get("test"),
+            "curves": curves, "odds": odds, "error_groups": error_groups,
+            "experiments": read_csv(REPORTS / "experiments.csv"),
+            "calibration_notes": section_bullets(card, "6. Calibration")}
+
+
+@app.get("/api/model-card", response_class=PlainTextResponse)
 def model_card():
-    return (ROOT / "reports" / "model_card.md").read_text(encoding="utf-8")
+    return PlainTextResponse((REPORTS / "model_card.md").read_text(encoding="utf-8"), media_type="text/markdown")
 
 
-@app.get("/", include_in_schema=False)
-def index():
-    return FileResponse(STATIC / "index.html")
+@app.get("/api/data-card")
+def data_card():
+    cfg = yaml.safe_load((ROOT / "config.yaml").read_text(encoding="utf-8"))["data"]
+    zip_path = ROOT / cfg["raw_dir"] / cfg["zip_name"]
+    return {
+        "name": "Hotel Booking Demand Datasets",
+        "authors": "Nuno Antonio, Ana de Almeida, Luis Nunes",
+        "citation": "Antonio, N., de Almeida, A., & Nunes, L. (2019). Hotel booking demand datasets. "
+                    "Data in Brief, 22, 41–49.",
+        "doi": "https://doi.org/10.1016/j.dib.2018.11.126",
+        "page": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6297060/",
+        "license": "CC BY 4.0",
+        "url": cfg["url"], "zip_sha256": cfg["zip_sha256"], "expected_rows": cfg["expected_rows"],
+        "files": [{"name": k, **v} for k, v in cfg["files"].items()],
+        "downloaded_at": (datetime.fromtimestamp(zip_path.stat().st_mtime, timezone.utc).date().isoformat()
+                          if zip_path.exists() else None),
+        "dictionary": read_csv(ROOT / "data" / "data_dictionary.csv"),
+        "quality": read_json(REPORTS / "data_quality.json"),
+    }
 
 
-@app.get("/predict", include_in_schema=False)
-def predict_page():
-    return FileResponse(STATIC / "predict.html")
+@app.get("/api/files/{name}")
+def download(name: str):
+    path = DOWNLOADS.get(name)
+    if path is None or not path.exists():
+        raise HTTPException(status_code=404, detail="Không có tệp này")
+    return FileResponse(path, filename=name)
 
 
-@app.get("/dashboard", include_in_schema=False)
-def dashboard_page():
-    return FileResponse(STATIC / "dashboard.html")
+# ---- Giao diện React (build vào app/web). Đường dẫn phía client trả về index.html.
+if (WEB / "assets").exists():
+    app.mount("/assets", StaticFiles(directory=WEB / "assets"), name="assets")
+
+
+@app.get("/{full_path:path}", include_in_schema=False)
+def spa(full_path: str):
+    if full_path.startswith("api/"):
+        raise HTTPException(status_code=404, detail="Không có endpoint này")
+    target = (WEB / full_path).resolve()
+    if full_path and target.is_file() and WEB.resolve() in target.parents:
+        return FileResponse(target)
+    if (WEB / "index.html").exists():
+        return FileResponse(WEB / "index.html")
+    return PlainTextResponse("Chưa build giao diện. Chạy: make ui (cần Node.js) rồi tải lại trang.", status_code=503)

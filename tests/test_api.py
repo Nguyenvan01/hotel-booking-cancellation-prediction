@@ -99,9 +99,60 @@ def test_schema_categories_match_training_data():
         assert {c for c, n in counts.items() if n >= 50} <= allowed, f"{col}: thiếu hạng mục phổ biến"
 
 
-@pytest.mark.parametrize("path", ["/", "/predict", "/dashboard", "/api/model-info", "/docs", "/model-card"])
-def test_pages_load(client, path):
+@pytest.mark.parametrize("path", ["/api/health", "/api/model-info", "/api/metrics", "/api/model-card", "/api/data-card", "/docs"])
+def test_read_only_endpoints(client, path):
     assert client.get(path).status_code == 200
+
+
+def test_model_info_fields_come_from_schema_and_train(client):
+    from app.schemas import BookingRequest
+    info = client.get("/api/model-info").json()
+    fields = {f["name"]: f for f in info["fields"]}
+    assert set(fields) == set(BookingRequest.model_fields)
+    assert fields["lead_time"]["train"]["max"] == 737 and fields["lead_time"]["max"] == 1000
+    assert all(f["group"] and f["label"] for f in fields.values())
+    assert {o["value"] for o in fields["market_segment"]["options"]} >= {"Online TA", "Groups"}
+    assert {e["variable"] for e in info["excluded"]} >= {"reservation_status", "booking_changes", "country"}
+
+
+def test_demo_bookings_are_valid_and_ordered_by_risk(client):
+    demos = {d["id"]: d["booking"] for d in client.get("/api/model-info").json()["demo_bookings"]}
+    groups = {k: client.post(URL, json=b).json() for k, b in demos.items()}
+    assert groups["low"]["risk_group"] == "Thấp" and groups["high"]["risk_group"] == "Rất cao"
+    assert groups["low"]["probability"] < groups["medium"]["probability"] < groups["high"]["probability"]
+    assert any("ngoài miền" in w for w in groups["ood"]["warnings"])
+
+
+def test_metrics_are_read_from_saved_files(client):
+    m = client.get("/api/metrics").json()
+    assert set(m["test"]["models"]) >= {"main", "prior", "lead_time"}
+    assert len(m["validation"]["threshold_curve"]) == 99
+    assert set(m["curves"]["roc"]) >= {"main", "lead_time"} and m["curves"]["calibration"]["test"]["main"]
+    assert m["odds"][0]["feature"] == "previous_cancellations" and m["error_groups"] and m["calibration_notes"]
+
+
+def test_data_card(client):
+    d = client.get("/api/data-card").json()
+    assert d["license"] == "CC BY 4.0" and len(d["dictionary"]) == 33 and d["expected_rows"] == 119390
+
+
+def test_downloads_are_whitelisted(client):
+    assert client.get("/api/files/metrics.json").status_code == 200
+    assert client.get("/api/files/config.yaml").status_code == 404
+    assert client.get("/api/khong-co").status_code == 404
+
+
+@pytest.mark.skipif(not (ROOT / "app" / "web" / "index.html").exists(), reason="chưa build giao diện (make ui)")
+@pytest.mark.parametrize("path", ["/", "/predict", "/evaluation/overview", "/model-card", "/data"])
+def test_spa_routes_serve_index(client, path):
+    r = client.get(path)
+    assert r.status_code == 200 and '<div id="root">' in r.text
+
+
+@pytest.mark.skipif(not (ROOT / "app" / "web" / "index.html").exists(), reason="chưa build giao diện (make ui)")
+def test_spa_does_not_leak_files_outside_build(client):
+    r = client.get("/..%2F..%2Fconfig.yaml")
+    assert "zip_sha256" not in r.text
 
 
 def test_explain_decomposes_log_odds_exactly(client, booking):
