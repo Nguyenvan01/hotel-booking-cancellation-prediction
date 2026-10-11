@@ -1,0 +1,23 @@
+# Môi trường
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ipynb_checkpoints/
+.DS_Store
+
+# Dữ liệu thô: tải lại bằng `make data`, không commit
+data/raw/
+
+# Tệp cũ / tài liệu của bên thứ ba không thuộc sản phẩm nhóm (xem docs/decisions.md D-01)
+archive/*.csv
+archive/3_REPORT_MachineLearning.docx
+Project_13_huy_dat_phong_khach_san.docx
+
+# File tạm của Word/LibreOffice
+~$*
+.~lock*
+
+# Kết quả chạy thử evaluate trên validation (python -m src.evaluate val)
+reports/dryrun_val/
