@@ -1,0 +1,34 @@
+variable,raw_name,type,unit,role,available_at,description,decision
+is_canceled,IsCanceled,int (0/1),—,target,sau đặt (nhãn),"1 = booking bị hủy (gồm cả no-show), 0 = khách đến",Biến mục tiêu
+hotel,(tên tệp H1/H2),category,—,feature,lúc đặt,"Resort Hotel (H1) hoặc City Hotel (H2)",Giữ: phạm vi gộp 2 khách sạn
+lead_time,LeadTime,int,ngày,feature,lúc đặt,Số ngày từ lúc nhập booking vào PMS đến ngày đến,Giữ (log1p + chuẩn hóa)
+arrival_date_year,ArrivalDateYear,int,năm,not_used,lúc đặt,Năm đến,"Không dùng: chia theo thời gian, năm của test không có trong train (không ngoại suy được)"
+arrival_date_month,ArrivalDateMonth,category,tháng,feature,lúc đặt,Tháng đến (January..December),Giữ: mùa vụ
+arrival_date_week_number,ArrivalDateWeekNumber,int,tuần,not_used,lúc đặt,Số tuần trong năm của ngày đến,Không dùng: trùng thông tin với tháng
+arrival_date_day_of_month,ArrivalDateDayOfMonth,int,ngày,not_used,lúc đặt,Ngày trong tháng,Không dùng làm đặc trưng; chỉ dùng tạo arrival_date
+arrival_date,(dẫn xuất),date,—,split_key,lúc đặt,Ngày đến ghép từ năm/tháng/ngày,Chỉ dùng để chia train/validation/test và phân tích theo thời gian
+stays_in_weekend_nights,StaysInWeekendNights,int,đêm,feature,lúc đặt (có thể đổi sau),Số đêm thứ Bảy/Chủ nhật đặt ở,"Giữ: thông tin cốt lõi của booking; rủi ro còn lại ghi trong decisions.md (D-07)"
+stays_in_week_nights,StaysInWeekNights,int,đêm,feature,lúc đặt (có thể đổi sau),Số đêm thứ Hai–Thứ Sáu đặt ở,Giữ (như trên)
+adults,Adults,int,người,feature,lúc đặt (có thể đổi sau),Số người lớn,Giữ (như trên)
+children,Children,int,người,feature,lúc đặt (có thể đổi sau),Số trẻ em (4 dòng thiếu bị loại),Giữ (như trên)
+babies,Babies,int,người,feature,lúc đặt (có thể đổi sau),Số em bé,Giữ (như trên)
+meal,Meal,category,—,feature,lúc đặt,"Gói ăn: BB, HB, FB, SC; Undefined (bài báo: tương đương SC)",Giữ; Undefined để nguyên là một hạng mục
+country,Country,category (ISO 3166-1 alpha-3),—,excluded_suspect,không rõ,Quốc gia xuất xứ khách,"Loại: PRT hủy 57% so với 24% nước khác, nghi được sửa lúc check-in; rủi ro phân biệt theo quốc tịch (D-04)"
+market_segment,MarketSegment,category,—,feature,lúc đặt,"Phân khúc thị trường (TA = travel agent, TO = tour operator)",Giữ
+distribution_channel,DistributionChannel,category,—,feature,lúc đặt,Kênh phân phối,Giữ
+is_repeated_guest,IsRepeatedGuest,int (0/1),—,feature,lúc đặt,Khách đã từng ở trước đó,Giữ (nhị phân; không chuẩn hóa)
+previous_cancellations,PreviousCancellations,int,booking,feature,lúc đặt,Số booking trước đó của khách đã bị hủy,"Giữ: lịch sử có trước (đề bài nêu rõ); lưu ý bất thường = 1 có 97% hủy (D-08)"
+previous_bookings_not_canceled,PreviousBookingsNotCanceled,int,booking,feature,lúc đặt,Số booking trước đó không bị hủy,Giữ
+reserved_room_type,ReservedRoomType,category (mã ẩn danh),—,feature,lúc đặt,Loại phòng đã đặt,Giữ; hạng mục < 50 dòng train gộp nhóm hiếm
+assigned_room_type,AssignedRoomType,category,—,excluded_leakage,sau đặt,Loại phòng thực tế được xếp (lúc check-in),Loại theo đề bài: chỉ biết sau thời điểm đặt
+booking_changes,BookingChanges,int,lần,excluded_leakage,sau đặt,Số lần sửa booking từ lúc nhập đến check-in/hủy,Loại theo đề bài: tích lũy sau thời điểm đặt
+deposit_type,DepositType,category,—,sensitivity_only,không rõ,"No Deposit, Non Refund, Refundable","Không dùng trong mô hình chính: Non Refund hủy 99,4% (ngược logic), nghi cập nhật sau khi hủy; chỉ dùng trong ablation A2 (D-05)"
+agent,Agent,category (ID),—,excluded_suspect,không rõ,ID đại lý du lịch (NULL = không qua đại lý),"Loại: ID nhiều giá trị, có thể được bổ sung sau; kênh đã được mô tả bởi market_segment/distribution_channel (D-06)"
+company,Company,category (ID),—,excluded_suspect,không rõ,ID công ty đặt/thanh toán (NULL = không có),"Loại: có thể được điền lúc thanh toán; 94% NULL (D-06)"
+days_in_waiting_list,DaysInWaitingList,int,ngày,excluded_leakage,sau đặt,Số ngày booking nằm trong danh sách chờ trước khi được xác nhận,Loại theo đề bài: chỉ biết sau thời điểm đặt
+customer_type,CustomerType,category,—,feature,lúc đặt,"Contract, Group, Transient, Transient-Party",Giữ
+adr,ADR,float,EUR/đêm,sensitivity_only,không rõ,Giá trung bình/đêm = tổng giao dịch lưu trú / số đêm,"Không dùng trong mô hình chính: tính từ giao dịch, có thể thay đổi sau đặt; chỉ dùng trong ablation A2 (D-05)"
+required_car_parking_spaces,RequiredCarParkingSpaces,int,chỗ,excluded_suspect,sau đặt (nghi lúc check-in),Số chỗ đậu xe khách yêu cầu,"Loại: 7.416 booking có chỗ đậu xe đều không hủy (0%), gần như chắc chắn ghi lúc check-in (D-03)"
+total_of_special_requests,TotalOfSpecialRequests,int,yêu cầu,sensitivity_only,không rõ,Tổng số yêu cầu đặc biệt,"Không dùng trong mô hình chính: có thể bổ sung sau đặt; chỉ dùng trong ablation A2 (D-05)"
+reservation_status,ReservationStatus,category,—,excluded_leakage,sau đặt,"Canceled / Check-Out / No-Show: chính là kết quả",Loại theo đề bài: trùng với nhãn
+reservation_status_date,ReservationStatusDate,date,—,excluded_leakage,sau đặt,Ngày đặt trạng thái cuối cùng,Loại theo đề bài: sau thời điểm đặt

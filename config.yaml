@@ -1,0 +1,38 @@
+# Cấu hình duy nhất của pipeline. Mọi đường dẫn là tương đối so với thư mục gốc repo.
+seed: 42
+
+data:
+  # Supplementary "Multimedia component 2" của bài Data in Brief (Antonio, Almeida & Nunes, 2019),
+  # cùng tệp với liên kết mmc2.zip trên https://pmc.ncbi.nlm.nih.gov/articles/PMC6297060/
+  url: https://ars.els-cdn.com/content/image/1-s2.0-S2352340918315191-mmc2.zip
+  zip_name: mmc2.zip
+  zip_sha256: 6db57d635b9edec05f1cf9616ba6473e864909e4fc34819fa21cff58d518ee6a
+  raw_dir: data/raw
+  expected_rows: 119390
+  files:
+    H1.csv: {hotel: Resort Hotel, rows: 40060, sha256: 6f38fda13794fd6cf6547d2432ffb79666200000eb45fd09e4b97fe49519a6ab}
+    H2.csv: {hotel: City Hotel, rows: 79330, sha256: 5107090ffdc5585a9e18299801e9d85c3b459c235542882183a502a73ef63c4d}
+
+# Chia theo ngày đến (arrival date), khoảng nửa mở [start, end).
+# train: 2015-07-01 .. 2016-12-31 | validation: 2017-01-01 .. 2017-04-30 | test: 2017-05-01 .. 2017-08-31
+split:
+  val_start: "2017-01-01"
+  test_start: "2017-05-01"
+
+model:
+  C_grid: [0.001, 0.01, 0.1, 1, 10, 100]
+  l1_ratio_grid: [0.0, 1.0]        # 0 = L2, 1 = L1 (sklearn >= 1.8 thay `penalty` bằng `l1_ratio`)
+  class_weight_grid: [null, balanced]
+  selection_metric: log_loss       # chọn cấu hình theo log loss trên validation (đầu ra là xác suất)
+  max_iter: 5000
+
+thresholds:
+  recall_target: 0.90              # ngưỡng 1: ngưỡng cao nhất vẫn bắt được >= 90% booking hủy (validation)
+  capacity_share: 0.15             # ngưỡng 3: năng lực gọi xác nhận ~15% số booking
+
+bootstrap_n: 200                   # số lần bootstrap để ước lượng khoảng biến thiên của metric
+
+paths:
+  models: models
+  reports: reports
+  figures: reports/figures
